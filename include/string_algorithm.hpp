@@ -32,5 +32,63 @@
  **/
 
 #pragma once
+#include <algorithm>
+#include <sstream>
+#include <string>
+#include <vector>
 
-namespace str {}
+namespace str {
+template <class T>
+inline bool contains(const std::string& str, T search) {
+	return str.find(search) != std::string::npos;
+}
+
+inline std::string lower_case(const std::string& str) {
+	std::string ret = str;
+	std::transform(ret.begin(), ret.end(), ret.begin(),
+			[](char c) { return static_cast<char>(::tolower(c)); });
+	return ret;
+}
+
+inline std::vector<std::string> split(const std::string& str, char delimiter) {
+	std::vector<std::string> tokens;
+	std::string token;
+	std::istringstream tokenStream(str);
+	while (std::getline(tokenStream, token, delimiter)) {
+		tokens.push_back(token);
+	}
+	return tokens;
+}
+
+inline std::vector<std::string> split(
+		const std::string& str, const char* delimiters) {
+	std::vector<std::string> tokens;
+	size_t prev = 0;
+	size_t pos;
+
+	while ((pos = str.find_first_of(delimiters, prev)) != std::string::npos) {
+		if (pos > prev) {
+			tokens.push_back(str.substr(prev, pos - prev));
+		}
+		prev = pos + 1;
+	}
+	if (prev < str.length()) {
+		tokens.push_back(str.substr(prev, std::string::npos));
+	}
+	return tokens;
+}
+
+inline std::string replace_all(const std::string& str,
+		const std::string& search, const std::string& replace) {
+
+	std::string ret = str;
+	size_t pos = ret.find(search);
+	while (pos != std::string::npos) {
+		ret.replace(pos, search.size(), replace);
+		--pos;
+		pos = ret.find(search, pos + search.size());
+	}
+	return ret;
+}
+
+} // namespace str
