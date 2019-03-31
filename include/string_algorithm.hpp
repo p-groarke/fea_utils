@@ -43,7 +43,15 @@ inline bool contains(const std::string& str, T search) {
 	return str.find(search) != std::string::npos;
 }
 
-inline std::string lower_case(const std::string& str) {
+inline bool starts_with(const std::string& str, const std::string& search) {
+	return str.find(search) == 0;
+}
+
+inline bool ends_with(const std::string& str, const std::string& search) {
+	return str.find(search) == str.size() - search.size();
+}
+
+inline std::string to_lower(const std::string& str) {
 	std::string ret = str;
 	std::transform(ret.begin(), ret.end(), ret.begin(),
 			[](char c) { return static_cast<char>(::tolower(c)); });
