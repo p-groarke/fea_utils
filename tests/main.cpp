@@ -1,23 +1,23 @@
 #include <gtest/gtest.h>
-#include <string_algorithm.hpp>
+#include <useful_shit/useful_shit.hpp>
 
 namespace {
 TEST(str, basics) {
 	std::string str = "a string weeee, bang, ding, ow";
-	EXPECT_TRUE(str::contains(str, "ding"));
-	EXPECT_FALSE(str::contains(str, "dong"));
+	EXPECT_TRUE(fea::contains(str, "ding"));
+	EXPECT_FALSE(fea::contains(str, "dong"));
 
 	std::string caps = "NOT SCREAMING";
-	EXPECT_EQ(str::lower_case(caps), "not screaming");
-	EXPECT_NE(str::lower_case(caps), "NOT SCREAMING");
+	EXPECT_EQ(fea::to_lower(caps), "not screaming");
+	EXPECT_NE(fea::to_lower(caps), "NOT SCREAMING");
 
-	auto vec = str::split(str, ',');
+	auto vec = fea::split(str, ',');
 	EXPECT_EQ(vec.size(), 4);
 
-	vec = str::split(str, ", ");
+	vec = fea::split(str, ", ");
 	EXPECT_EQ(vec.size(), 6);
 
-	EXPECT_EQ(str::replace_all(caps, "NOT", "is"), "is SCREAMING");
+	EXPECT_EQ(fea::replace_all(caps, "NOT", "is"), "is SCREAMING");
 }
 } // namespace
 

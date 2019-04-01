@@ -37,7 +37,7 @@
 #include <string>
 #include <vector>
 
-namespace str {
+namespace fea {
 template <class T>
 inline bool contains(const std::string& str, T search) {
 	return str.find(search) != std::string::npos;
