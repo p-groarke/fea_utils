@@ -39,7 +39,7 @@
 namespace fea {
 
 template <class Func>
-inline bool open_text_file(
+inline bool read_text_file(
 		const std::filesystem::path& fpath, const Func& func) {
 	std::ifstream ifs(fpath);
 	if (!ifs.is_open()) {
@@ -49,30 +49,48 @@ inline bool open_text_file(
 
 	std::string line;
 	while (std::getline(ifs, line)) {
-		if (line.back() == '\n') {
-			line.pop_back();
-		}
-		if (line.back() == '\r') {
-			line.pop_back();
+		if (line.size() > 0) {
+			if (line.back() == '\n') {
+				line.pop_back();
+			}
+			if (line.back() == '\r') {
+				line.pop_back();
+			}
 		}
 		std::invoke(func, std::move(line));
 	}
 	return true;
 }
 
-template <class Func>
-inline bool open_binary_file(const std::filesystem::path& f, Func&& func) {
-	std::ifstream ifs{ f, std::ios::binary | std::ios::ate };
+inline std::string open_text_file(const std::filesystem::path& fpath) {
+	std::ifstream ifs(fpath, std::ios::ate);
 	if (!ifs.is_open()) {
-		fprintf(stderr, "Couldn't open file '%s'\n", f.string().c_str());
-		return false;
+		fprintf(stderr, "Couldn't open file : %s\n", fpath.string().c_str());
+		return {};
 	}
 
 	std::streampos size = ifs.tellg();
-	std::vector<uint8_t> data_vec = std::vector<uint8_t>(size);
+	std::string ret(size, '\0');
 	ifs.seekg(0, std::ios::beg);
-	ifs.read(reinterpret_cast<char*>(data_vec.data()), size);
-	std::invoke(std::forward<Func>(func), std::move(data_vec));
-	return true;
+	ifs.read(ret.data(), size);
+	size_t pos = ret.find('\0');
+	if (pos != std::string::npos) {
+		ret.resize(pos);
+	}
+	return ret;
+}
+
+inline std::vector<uint8_t> open_binary_file(const std::filesystem::path& f) {
+	std::ifstream ifs{ f, std::ios::binary | std::ios::ate };
+	if (!ifs.is_open()) {
+		fprintf(stderr, "Couldn't open file '%s'\n", f.string().c_str());
+		return {};
+	}
+
+	std::streampos size = ifs.tellg();
+	std::vector<uint8_t> ret(size);
+	ifs.seekg(0, std::ios::beg);
+	ifs.read(reinterpret_cast<char*>(ret.data()), size);
+	return ret;
 }
 } // namespace fea
