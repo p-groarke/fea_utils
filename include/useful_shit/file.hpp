@@ -39,7 +39,8 @@
 namespace fea {
 
 template <class Func>
-bool open_text_file(const std::filesystem::path& fpath, const Func& func) {
+inline bool open_text_file(
+		const std::filesystem::path& fpath, const Func& func) {
 	std::ifstream ifs(fpath);
 	if (!ifs.is_open()) {
 		fprintf(stderr, "Couldn't open file : %s\n", fpath.string().c_str());
@@ -60,7 +61,7 @@ bool open_text_file(const std::filesystem::path& fpath, const Func& func) {
 }
 
 template <class Func>
-bool open_binary_file(const std::filesystem::path& f, Func&& func) {
+inline bool open_binary_file(const std::filesystem::path& f, Func&& func) {
 	std::ifstream ifs{ f, std::ios::binary | std::ios::ate };
 	if (!ifs.is_open()) {
 		fprintf(stderr, "Couldn't open file '%s'\n", f.string().c_str());
