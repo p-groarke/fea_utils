@@ -32,16 +32,15 @@
  **/
 
 #pragma once
-#include <chrono>
 #include <thread>
 
+// If you don't feel like linking to tbb.
 namespace fea {
 inline size_t num_threads() {
 	size_t concurrency = std::thread::hardware_concurrency();
 	return concurrency <= 0 ? 1 : concurrency;
 }
 
-// Roll our own parallel_for due to build issues with tbb and c++17.
 inline void parallel_for(size_t loop_count,
 		const std::function<void(const std::pair<size_t, size_t>&, size_t)>&
 				func) {
