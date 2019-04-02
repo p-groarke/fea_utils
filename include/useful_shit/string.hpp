@@ -58,6 +58,13 @@ inline std::string to_lower(const std::string& str) {
 	return ret;
 }
 
+inline std::vector<uint8_t> to_lower(const std::vector<uint8_t>& str) {
+	std::vector<uint8_t> ret = str;
+	std::transform(ret.begin(), ret.end(), ret.begin(),
+			[](char c) { return static_cast<char>(::tolower(c)); });
+	return ret;
+}
+
 inline std::vector<std::string> split(const std::string& str, char delimiter) {
 	std::vector<std::string> tokens;
 	std::string token;
@@ -99,4 +106,4 @@ inline std::string replace_all(const std::string& str,
 	return ret;
 }
 
-} // namespace str
+} // namespace fea

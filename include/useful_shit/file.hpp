@@ -49,48 +49,105 @@ inline bool read_text_file(
 
 	std::string line;
 	while (std::getline(ifs, line)) {
-		if (line.size() > 0) {
-			if (line.back() == '\n') {
-				line.pop_back();
-			}
-			if (line.back() == '\r') {
-				line.pop_back();
-			}
+		if (line.size() > 0 && line.back() == '\r') {
+			line.pop_back();
 		}
 		std::invoke(func, std::move(line));
 	}
 	return true;
 }
 
-inline std::string open_text_file(const std::filesystem::path& fpath) {
+inline bool open_text_file(
+		const std::filesystem::path& fpath, std::vector<uint8_t>& out) {
 	std::ifstream ifs(fpath, std::ios::ate);
 	if (!ifs.is_open()) {
 		fprintf(stderr, "Couldn't open file : %s\n", fpath.string().c_str());
-		return {};
+		return false;
 	}
 
 	std::streampos size = ifs.tellg();
-	std::string ret(size, '\0');
+	out = {};
+	out.reserve(size);
 	ifs.seekg(0, std::ios::beg);
-	ifs.read(ret.data(), size);
-	size_t pos = ret.find('\0');
-	if (pos != std::string::npos) {
-		ret.resize(pos);
+
+	std::string line;
+	while (std::getline(ifs, line)) {
+		if (line.size() > 0 && line.back() == '\r') {
+			line.pop_back();
+		}
+
+		for (char c : line) {
+			out.push_back(static_cast<uint8_t>(c));
+		}
+	}
+	return true;
+}
+
+inline bool open_text_file(const std::filesystem::path& fpath,
+		std::vector<std::vector<uint8_t>>& out) {
+	out = {};
+
+	return read_text_file(fpath, [&](std::string&& line) {
+		out.push_back({});
+		for (char c : line) {
+			out.back().push_back(static_cast<uint8_t>(c));
+		}
+	});
+}
+
+
+inline bool open_text_file(
+		const std::filesystem::path& fpath, std::string& out) {
+	std::vector<uint8_t> data;
+	bool ret = open_text_file(fpath, data);
+
+	out = {};
+	out.reserve(data.size());
+	for (uint8_t u : data) {
+		out.push_back(static_cast<char>(u));
 	}
 	return ret;
 }
 
-inline std::vector<uint8_t> open_binary_file(const std::filesystem::path& f) {
-	std::ifstream ifs{ f, std::ios::binary | std::ios::ate };
+inline bool open_text_file(
+		const std::filesystem::path& fpath, std::vector<std::string>& out) {
+	out = {};
+
+	return read_text_file(
+			fpath, [&](std::string&& line) { out.push_back(line); });
+}
+
+inline bool open_text_file_raw(
+		const std::filesystem::path& fpath, std::string& out) {
+	std::ifstream ifs(fpath, std::ios::ate);
 	if (!ifs.is_open()) {
-		fprintf(stderr, "Couldn't open file '%s'\n", f.string().c_str());
-		return {};
+		fprintf(stderr, "Couldn't open file : %s\n", fpath.string().c_str());
+		return false;
 	}
 
 	std::streampos size = ifs.tellg();
-	std::vector<uint8_t> ret(size);
+	out = std::string(size, '\0');
 	ifs.seekg(0, std::ios::beg);
-	ifs.read(reinterpret_cast<char*>(ret.data()), size);
-	return ret;
+	ifs.read(out.data(), size);
+	size_t pos = out.find('\0');
+	if (pos != std::string::npos) {
+		out.resize(pos);
+	}
+	return true;
+}
+
+inline bool open_binary_file(
+		const std::filesystem::path& f, std::vector<uint8_t>& out) {
+	std::ifstream ifs{ f, std::ios::binary | std::ios::ate };
+	if (!ifs.is_open()) {
+		fprintf(stderr, "Couldn't open file '%s'\n", f.string().c_str());
+		return false;
+	}
+
+	std::streampos size = ifs.tellg();
+	out = std::vector<uint8_t>(size);
+	ifs.seekg(0, std::ios::beg);
+	ifs.read(reinterpret_cast<char*>(out.data()), size);
+	return true;
 }
 } // namespace fea
