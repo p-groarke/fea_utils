@@ -32,6 +32,8 @@
  **/
 
 #pragma once
+#include <mutex>
+#include <shared_mutex>
 #include <thread>
 
 // If you don't feel like linking to tbb.
@@ -105,4 +107,59 @@ inline void parallel_tasks(std::vector<std::function<void()>>&& tasks) {
 	}
 }
 
+template <class T>
+struct mutex_wrapped {
+	mutex_wrapped(const T& obj)
+			: _obj(obj) {
+	}
+	mutex_wrapped(T&& obj)
+			: _obj(std::move(obj)) {
+	}
+	mutex_wrapped() = default;
+
+	template <class Func>
+	auto get(Func&& func) const {
+		std::shared_lock l{ _mutex };
+		return std::invoke(std::forward<Func>(func), _obj);
+	}
+
+	template <class Func>
+	auto mutate(Func&& func) {
+		std::unique_lock l{ _mutex };
+		return std::invoke(std::forward<Func>(func), _obj);
+	}
+
+	T&& extract() {
+		std::unique_lock l{ _mutex };
+		return std::move(_obj);
+	}
+
+private:
+	mutable std::shared_mutex _mutex;
+	T _obj;
+};
+
+template <class T>
+struct mutex_wrapped<T*> {
+	mutex_wrapped(T* obj)
+			: _obj(obj) {
+	}
+	mutex_wrapped() = default;
+
+	template <class Func>
+	auto get(Func&& func) const {
+		std::shared_lock l{ _mutex };
+		return std::invoke(std::forward<Func>(func), *_obj);
+	}
+
+	template <class Func>
+	auto mutate(Func&& func) {
+		std::unique_lock l{ _mutex };
+		return std::invoke(std::forward<Func>(func), *_obj);
+	}
+
+private:
+	mutable std::shared_mutex _mutex;
+	T* _obj{ nullptr };
+};
 } // namespace fea
