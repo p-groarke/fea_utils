@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.10)
-project(useful_shit VERSION 1.0.0 LANGUAGES CXX)
+project(useful_things VERSION 1.0.0 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -21,7 +21,7 @@ foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
 	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${BINARY_OUT_DIR})
 endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
 
-file(GLOB_RECURSE HEADER_FILES "${PROJECT_SOURCE_DIR}/include/useful_shit/*.hpp")
+file(GLOB_RECURSE HEADER_FILES "${PROJECT_SOURCE_DIR}/include/useful_things/*.hpp")
 add_library(${PROJECT_NAME} INTERFACE)
 target_sources(${PROJECT_NAME} INTERFACE
 	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
