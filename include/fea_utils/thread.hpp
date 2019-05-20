@@ -35,10 +35,11 @@
 #include <mutex>
 #include <shared_mutex>
 #include <thread>
+#include <type_traits>
 
 // If you don't feel like linking to tbb.
 namespace fea {
-inline size_t num_threads() {
+[[nodiscard]] inline size_t num_threads() {
 	size_t concurrency = std::thread::hardware_concurrency();
 	return concurrency <= 0 ? 1 : concurrency;
 }
@@ -86,7 +87,7 @@ inline void parallel_tasks(std::vector<std::function<void()>>&& tasks) {
 	}
 
 	while (threads.size() > 0) {
-		std::this_thread::sleep_for(0.5s);
+		std::this_thread::sleep_for(0.1s);
 
 		for (size_t i = 0; i < threads.size(); ++i) {
 			if (!threads[i].joinable())
@@ -97,9 +98,11 @@ inline void parallel_tasks(std::vector<std::function<void()>>&& tasks) {
 			if (tasks.size() > 0) {
 				threads[i] = std::thread{ std::move(tasks.back()) };
 				tasks.pop_back();
-			} else if (i == threads.size() - 1) { // edge case: pop last
+			} else if (i == threads.size() - 1) {
+				// edge case: pop last
 				threads.pop_back();
 			} else {
+				// erase thread : swap & pop
 				threads[i] = std::move(threads.back());
 				threads.pop_back();
 			}
@@ -108,54 +111,64 @@ inline void parallel_tasks(std::vector<std::function<void()>>&& tasks) {
 }
 
 template <class T>
-struct mutex_wrapped {
-	mutex_wrapped(const T& obj)
+struct mtx_safe {
+	mtx_safe(const T& obj)
 			: _obj(obj) {
 	}
-	mutex_wrapped(T&& obj)
+	mtx_safe(T&& obj)
 			: _obj(std::move(obj)) {
 	}
-	mutex_wrapped() = default;
+	mtx_safe() = default;
 
 	template <class Func>
-	auto get(Func&& func) const {
+	auto read(Func&& func) const {
 		std::shared_lock l{ _mutex };
 		return std::invoke(std::forward<Func>(func), _obj);
 	}
 
 	template <class Func>
-	auto mutate(Func&& func) {
+	auto write(Func&& func) {
 		std::unique_lock l{ _mutex };
 		return std::invoke(std::forward<Func>(func), _obj);
 	}
 
-	T&& extract() {
+	template <class... CtorArgs>
+	T extract(CtorArgs&&... replacement_ctor_args) {
 		std::unique_lock l{ _mutex };
-		return std::move(_obj);
+		T ret{ fea::maybe_move(_obj) };
+		_obj = T{ std::forward<CtorArgs>(replacement_ctor_args)... };
+		return ret;
 	}
 
 private:
 	mutable std::shared_mutex _mutex;
-	T _obj;
+	T _obj{};
 };
 
 template <class T>
-struct mutex_wrapped<T*> {
-	mutex_wrapped(T* obj)
+struct mtx_safe<T*> {
+	mtx_safe(T* obj)
 			: _obj(obj) {
 	}
-	mutex_wrapped() = default;
+	mtx_safe() = default;
 
 	template <class Func>
-	auto get(Func&& func) const {
+	auto read(Func&& func) const {
 		std::shared_lock l{ _mutex };
 		return std::invoke(std::forward<Func>(func), *_obj);
 	}
 
 	template <class Func>
-	auto mutate(Func&& func) {
+	auto write(Func&& func) {
 		std::unique_lock l{ _mutex };
 		return std::invoke(std::forward<Func>(func), *_obj);
+	}
+
+	T* extract(T* replacement) {
+		std::unique_lock l{ _mutex };
+		T* ret = _obj;
+		_obj = replacement;
+		return ret;
 	}
 
 private:

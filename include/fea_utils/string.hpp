@@ -51,21 +51,33 @@ inline bool ends_with(const std::string& str, const std::string& search) {
 	return str.find(search) == str.size() - search.size();
 }
 
-inline std::string to_lower(const std::string& str) {
+[[nodiscard]] inline std::string to_lower(const std::string& str) {
 	std::string ret = str;
 	std::transform(ret.begin(), ret.end(), ret.begin(),
 			[](char c) { return static_cast<char>(::tolower(c)); });
 	return ret;
 }
 
-inline std::vector<uint8_t> to_lower(const std::vector<uint8_t>& str) {
+inline void to_lower(std::string& out, bool /*inplace*/) {
+	std::transform(out.begin(), out.end(), out.begin(),
+			[](char c) { return static_cast<char>(::tolower(c)); });
+}
+
+[[nodiscard]] inline std::vector<uint8_t> to_lower(
+		const std::vector<uint8_t>& str) {
 	std::vector<uint8_t> ret = str;
 	std::transform(ret.begin(), ret.end(), ret.begin(),
 			[](char c) { return static_cast<char>(::tolower(c)); });
 	return ret;
 }
 
-inline std::vector<std::string> split(const std::string& str, char delimiter) {
+inline void to_lower(std::vector<uint8_t>& out, bool /*inplace*/) {
+	std::transform(out.begin(), out.end(), out.begin(),
+			[](char c) { return static_cast<char>(::tolower(c)); });
+}
+
+[[nodiscard]] inline std::vector<std::string> split(
+		const std::string& str, char delimiter) {
 	std::vector<std::string> tokens;
 	std::string token;
 	std::istringstream tokenStream(str);
@@ -75,7 +87,7 @@ inline std::vector<std::string> split(const std::string& str, char delimiter) {
 	return tokens;
 }
 
-inline std::vector<std::string> split(
+[[nodiscard]] inline std::vector<std::string> split(
 		const std::string& str, const char* delimiters) {
 	std::vector<std::string> tokens;
 	size_t prev = 0;
@@ -93,7 +105,7 @@ inline std::vector<std::string> split(
 	return tokens;
 }
 
-inline std::string replace_all(const std::string& str,
+[[nodiscard]] inline std::string replace_all(const std::string& str,
 		const std::string& search, const std::string& replace) {
 
 	std::string ret = str;
@@ -104,6 +116,17 @@ inline std::string replace_all(const std::string& str,
 		pos = ret.find(search, pos + search.size());
 	}
 	return ret;
+}
+
+inline void replace_all(std::string& out, const std::string& search,
+		const std::string& replace, bool /*inplace*/) {
+
+	size_t pos = out.find(search);
+	while (pos != std::string::npos) {
+		out.replace(pos, search.size(), replace);
+		--pos;
+		pos = out.find(search, pos + search.size());
+	}
 }
 
 } // namespace fea
