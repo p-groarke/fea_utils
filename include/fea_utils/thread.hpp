@@ -118,18 +118,22 @@ struct mtx_safe {
 	mtx_safe(T&& obj)
 			: _obj(std::move(obj)) {
 	}
+	template <class... CtorArgs>
+	mtx_safe(CtorArgs&&... ctor_args)
+			: _obj(std::forward<CtorArgs>(ctor_args)...) {
+	}
 	mtx_safe() = default;
 
 	template <class Func>
 	auto read(Func&& func) const {
 		std::shared_lock l{ _mutex };
-		return std::invoke(std::forward<Func>(func), _obj);
+		return std::forward<Func>(func)(_obj);
 	}
 
 	template <class Func>
 	auto write(Func&& func) {
 		std::unique_lock l{ _mutex };
-		return std::invoke(std::forward<Func>(func), _obj);
+		return std::forward<Func>(func)(_obj);
 	}
 
 	template <class... CtorArgs>
@@ -164,7 +168,7 @@ struct mtx_safe<T*> {
 		return std::invoke(std::forward<Func>(func), *_obj);
 	}
 
-	T* extract(T* replacement) {
+	T* extract(T* replacement = nullptr) {
 		std::unique_lock l{ _mutex };
 		T* ret = _obj;
 		_obj = replacement;

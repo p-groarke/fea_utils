@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <useful_things/useful_things.hpp>
+#include <fea_utils/fea_utils.hpp>
 
 namespace {
 TEST(str, basics) {
