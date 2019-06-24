@@ -32,6 +32,7 @@
  **/
 
 #pragma once
+#include <functional>
 #include <mutex>
 #include <shared_mutex>
 #include <thread>
@@ -87,7 +88,7 @@ inline void parallel_tasks(std::vector<std::function<void()>>&& tasks) {
 	}
 
 	while (threads.size() > 0) {
-		std::this_thread::sleep_for(0.1s);
+		std::this_thread::sleep_for(0.01s);
 
 		for (size_t i = 0; i < threads.size(); ++i) {
 			if (!threads[i].joinable())
@@ -178,5 +179,35 @@ struct mtx_safe<T*> {
 private:
 	mutable std::shared_mutex _mutex;
 	T* _obj{ nullptr };
+};
+
+template <class T>
+struct mtx_safe<T&> {
+	mtx_safe(T& obj)
+			: _obj(obj) {
+	}
+
+	template <class Func>
+	auto read(Func&& func) const {
+		std::shared_lock l{ _mutex };
+		return std::invoke(std::forward<Func>(func), _obj);
+	}
+
+	template <class Func>
+	auto write(Func&& func) {
+		std::unique_lock l{ _mutex };
+		return std::invoke(std::forward<Func>(func), _obj);
+	}
+
+	T& extract(T& replacement) {
+		std::unique_lock l{ _mutex };
+		T& ret = _obj;
+		_obj = replacement;
+		return ret;
+	}
+
+private:
+	mutable std::shared_mutex _mutex;
+	T& _obj{ nullptr };
 };
 } // namespace fea

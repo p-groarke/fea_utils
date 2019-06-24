@@ -35,6 +35,7 @@
 #include <filesystem>
 #include <fstream>
 #include <functional>
+#include <string>
 
 namespace fea {
 
