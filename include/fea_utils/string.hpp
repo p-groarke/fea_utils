@@ -140,26 +140,26 @@ inline void replace_all(std::string& out, const std::string& search,
 // https://stackoverflow.com/questions/38688417/utf-conversion-functions-in-c11
 
 #if defined(_MSC_VER) // std::locale::id link error
-std::string to_utf8(const std::u16string& s) {
+inline std::string to_utf8(const std::u16string& s) {
 	std::wstring_convert<std::codecvt_utf8<int16_t>, int16_t> convert;
 	auto p = reinterpret_cast<const int16_t*>(s.data());
 	return convert.to_bytes(p, p + s.size());
 }
 
-std::string to_utf8(const std::u32string& s) {
+inline std::string to_utf8(const std::u32string& s) {
 	std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t> convert;
 	auto p = reinterpret_cast<const int32_t*>(s.data());
 	return convert.to_bytes(p, p + s.size());
 }
 
-std::u16string to_utf16(const std::string& s) {
+inline std::u16string to_utf16(const std::string& s) {
 	std::wstring_convert<std::codecvt_utf8<int16_t>, int16_t> convert;
 	auto asInt = convert.from_bytes(s);
 	return std::u16string(
 			reinterpret_cast<char16_t const*>(asInt.data()), asInt.length());
 }
 
-std::u32string to_utf32(const std::string& s) {
+inline std::u32string to_utf32(const std::string& s) {
 	std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t> convert;
 	auto asInt = convert.from_bytes(s);
 	return std::u32string(
