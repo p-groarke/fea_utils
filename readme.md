@@ -1,8 +1,9 @@
 # fea_utils
+[![Build status](https://ci.appveyor.com/api/projects/status/08nrt1tbdau7o3jq/branch/master?svg=true)](https://ci.appveyor.com/project/p-groarke/fea-utils/branch/master)
 
 Useful utility functions to do basic things in c++.
 
-Includes helpers for file reading (per line, binary, string), string functions (split, starts_with, ends_with, contains, utf conversions, etc), reader/writer mutex wrappers, very basic parallel_for and parallel_task and more.
+Includes helpers for file reading and writing (per line, binary, string), string functions (split, starts_with, ends_with, contains, utf conversions, etc), reader/writer mutex wrappers, very basic parallel_for and parallel_task and more.
 
 ## Examples
 
