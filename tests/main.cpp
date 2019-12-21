@@ -1,4 +1,4 @@
-#include <fea_utils/fea_utils.hpp>
+﻿#include <fea_utils/fea_utils.hpp>
 #include <gtest/gtest.h>
 
 namespace {
@@ -60,6 +60,14 @@ TEST(thread, basics) {
 	mt_ref.read([&](const my_obj& o) { EXPECT_EQ(o.data, 100); });
 }
 
+TEST(scope, basics) {
+	size_t test_var = 0;
+
+	{
+		fea::on_exit e{ [&]() { ++test_var; } };
+	}
+	EXPECT_EQ(test_var, 1);
+}
 } // namespace
 
 int main(int argc, char** argv) {

@@ -1,3 +1,5 @@
+include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.conan.txt)
+
 cmake_minimum_required (VERSION 3.10)
 project(fea_utils VERSION 1.0.0 LANGUAGES CXX)
 
@@ -20,6 +22,11 @@ foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
 	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${BINARY_OUT_DIR})
 	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${BINARY_OUT_DIR})
 endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+
+# Organize unrelated targets to clean IDE hierarchy.
+set(DEPENDENCY_FOLDER "Dependencies")
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER ${DEPENDENCY_FOLDER})
 
 file(GLOB_RECURSE HEADER_FILES "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/*.hpp")
 add_library(${PROJECT_NAME} INTERFACE)
@@ -46,45 +53,18 @@ endif()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/.clang-format ${CMAKE_CURRENT_BINARY_DIR}/.clang-format COPYONLY)
 
 # Install Package Configuration
-set(INSTALL_CONFIGDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
-install(FILES ${HEADER_FILES} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}_targets)
 
-write_basic_package_version_file(
-	"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-	VERSION ${${PROJECT_NAME}_VERSION}
-	COMPATIBILITY AnyNewerVersion
-	)
+install(EXPORT ${PROJECT_NAME}_targets
+	NAMESPACE ${PROJECT_NAME}::
+	FILE ${PROJECT_NAME}-config.cmake
+	DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/${PROJECT_NAME}"
+)
 
-configure_package_config_file(
-	cmake/${PROJECT_NAME}Config.cmake.in
-	${INSTALL_CONFIGDIR}/${PROJECT_NAME}Config.cmake
-	INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
-	PATH_VARS CMAKE_INSTALL_INCLUDEDIR
-	NO_CHECK_REQUIRED_COMPONENTS_MACRO
-	)
-
-install(
-	FILES
-	"${CMAKE_CURRENT_BINARY_DIR}/${INSTALL_CONFIGDIR}/${PROJECT_NAME}Config.cmake"
-	"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-	DESTINATION ${INSTALL_CONFIGDIR}
-	)
-
-install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets)
-
-export(EXPORT ${PROJECT_NAME}Targets
-	FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake"
-	)
-
-install(
-	EXPORT ${PROJECT_NAME}Targets FILE ${PROJECT_NAME}Targets.cmake
-	DESTINATION ${INSTALL_CONFIGDIR}
-	)
-
-export(PACKAGE ${PROJECT_NAME})
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
 # Tests
-option(BUILD_TESTING "Build and run tests." Off)
+option(BUILD_TESTING "Build and run tests." On)
 if (${BUILD_TESTING})
 	enable_testing()
 	
@@ -94,7 +74,7 @@ if (${BUILD_TESTING})
 	set(TEST_NAME ${PROJECT_NAME}_tests)
 	file(GLOB_RECURSE TEST_SOURCES "tests/*.cpp" "tests/*.c" "tests/*.hpp" "tests/*.h" "tests/*.tpp")
 	add_executable(${TEST_NAME} ${TEST_SOURCES})
-	target_link_libraries(${TEST_NAME} PRIVATE ${PROJECT_NAME} CONAN_PKG::gtest)
+	target_link_libraries(${TEST_NAME} PRIVATE ${PROJECT_NAME} CONAN_PKG::GTest)
 	gtest_discover_tests(${TEST_NAME})
 	add_dependencies(${TEST_NAME} ${PROJECT_NAME})
 
