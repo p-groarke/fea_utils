@@ -24,7 +24,7 @@ TEST(str, basics) {
 
 	vec = fea::split(str, ", ");
 	vec_answer = { "a", "string", "weeee", "bang", "ding", "ow" };
-	EXPECT_EQ(vec.size(), 6);
+	EXPECT_EQ(vec.size(), 6u);
 	EXPECT_EQ(vec, vec_answer);
 
 	EXPECT_EQ(fea::replace_all(caps, "NOT", "is"), "is SCREAMING");
