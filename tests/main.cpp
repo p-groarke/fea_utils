@@ -55,9 +55,9 @@ TEST(thread, basics) {
 	}
 	fea::parallel_tasks(std::move(funcs));
 
-	mt_obj.read([&](const my_obj& o) { EXPECT_EQ(o.data, 100); });
-	mt_ptr.read([&](const my_obj& o) { EXPECT_EQ(o.data, 100); });
-	mt_ref.read([&](const my_obj& o) { EXPECT_EQ(o.data, 100); });
+	mt_obj.read([&](const my_obj& o) { EXPECT_EQ(o.data, 100u); });
+	mt_ptr.read([&](const my_obj& o) { EXPECT_EQ(o.data, 100u); });
+	mt_ref.read([&](const my_obj& o) { EXPECT_EQ(o.data, 100u); });
 }
 
 TEST(scope, basics) {
@@ -66,7 +66,7 @@ TEST(scope, basics) {
 	{
 		fea::on_exit e{ [&]() { ++test_var; } };
 	}
-	EXPECT_EQ(test_var, 1);
+	EXPECT_EQ(test_var, 1u);
 }
 } // namespace
 
