@@ -19,7 +19,7 @@ TEST(str, basics) {
 	auto vec = fea::split(str, ',');
 	std::vector<std::string> vec_answer{ "a string weeee", " bang", " ding",
 		" ow" };
-	EXPECT_EQ(vec.size(), 4);
+	EXPECT_EQ(vec.size(), 4u);
 	EXPECT_EQ(vec, vec_answer);
 
 	vec = fea::split(str, ", ");

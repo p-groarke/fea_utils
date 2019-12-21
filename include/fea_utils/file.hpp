@@ -1,4 +1,4 @@
-/**
+﻿/**
  * BSD 3-Clause License
  *
  * Copyright (c) 2019, Philippe Groarke
@@ -68,7 +68,7 @@ inline bool open_text_file(
 
 	std::streampos size = ifs.tellg();
 	out = {};
-	out.reserve(size);
+	out.reserve(size_t(size));
 	ifs.seekg(0, std::ios::beg);
 
 	std::string line;
@@ -127,7 +127,7 @@ inline bool open_text_file_raw(
 	}
 
 	std::streampos size = ifs.tellg();
-	out = std::string(size, '\0');
+	out = std::string(size_t(size), '\0');
 	ifs.seekg(0, std::ios::beg);
 	ifs.read(out.data(), size);
 	size_t pos = out.find('\0');
@@ -146,7 +146,7 @@ inline bool open_binary_file(
 	}
 
 	std::streampos size = ifs.tellg();
-	out = std::vector<uint8_t>(size);
+	out = std::vector<uint8_t>(size_t(size));
 	ifs.seekg(0, std::ios::beg);
 	ifs.read(reinterpret_cast<char*>(out.data()), size);
 	return true;
