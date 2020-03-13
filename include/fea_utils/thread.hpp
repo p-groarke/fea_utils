@@ -32,6 +32,8 @@
  **/
 
 #pragma once
+#include "fea_utils/memory.hpp"
+
 #include <functional>
 #include <mutex>
 #include <shared_mutex>
