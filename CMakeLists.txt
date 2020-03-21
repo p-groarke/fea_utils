@@ -90,3 +90,14 @@ if (${BUILD_TESTING})
 		set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${TEST_NAME})
 	endif()
 endif()
+
+
+##
+# Copy test data on build.
+##
+set(DATA_IN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests/data)
+set(DATA_OUT_DIR ${BINARY_OUT_DIR}/tests_data)
+add_custom_command(TARGET ${TEST_NAME} POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E make_directory ${DATA_OUT_DIR}
+	COMMAND ${CMAKE_COMMAND} -E copy_directory ${DATA_IN_DIR} ${DATA_OUT_DIR}
+)
