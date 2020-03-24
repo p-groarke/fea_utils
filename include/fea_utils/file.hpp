@@ -217,7 +217,9 @@ bool open_text_file_raw(const std::filesystem::path& fpath, String& out) {
 	out = String(file_size(ifs), '\0');
 	ifs.read(out.data(), out.size());
 
-	size_t pos = out.find('\0'); // The real end is always screwed up.
+	using c_t = typename String::value_type;
+	size_t pos = out.find(c_t{}); // The real end is always screwed up.
+	
 	if (pos != String::npos) {
 		out.resize(pos);
 	}
