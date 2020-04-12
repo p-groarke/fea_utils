@@ -99,7 +99,7 @@ TEST(file, basics) {
 				++counter;
 			});
 
-			EXPECT_EQ(counter, 4);
+			EXPECT_EQ(counter, 4u);
 		}
 
 		{
@@ -126,7 +126,7 @@ TEST(file, basics) {
 				++counter;
 			});
 
-			EXPECT_EQ(counter, 4);
+			EXPECT_EQ(counter, 4u);
 		}
 
 		{
