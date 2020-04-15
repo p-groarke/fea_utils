@@ -39,6 +39,10 @@
 #include <string>
 #include <vector>
 
+#if defined(_MSC_VER)
+#include <windows.h>
+#endif
+
 namespace fea {
 template <class T>
 inline bool contains(const std::string& str, T search) {
@@ -332,9 +336,8 @@ inline std::string iso_8859_1_to_utf8(const std::string& str) {
 	return ret;
 }
 
-#if defined(_MSC_VER)
-#include <windows.h>
 
+#if defined(_MSC_VER)
 // Provide a code page, for example CP_ACP
 inline std::wstring codepage_to_utf16_w(
 		UINT code_page, const std::string& str) {
@@ -354,8 +357,29 @@ inline std::wstring codepage_to_utf16_w(
 	return ret;
 }
 
+inline std::string utf16_to_codepage(UINT code_page, const std::wstring& str) {
+	if (str.size() > std::numeric_limits<int>::max()) {
+		throw std::runtime_error{
+			"utf16_to_codepage : Windows doesn't support converting strings "
+			"that big."
+		};
+	}
+
+	int size = WideCharToMultiByte(
+			code_page, 0, str.data(), int(str.size()), 0, 0, nullptr, nullptr);
+
+	std::string ret(size, '\0');
+	WideCharToMultiByte(code_page, 0, str.c_str(), int(str.size()), ret.data(),
+			int(ret.size()), nullptr, nullptr);
+	return ret;
+}
+
 inline std::wstring current_codepage_to_utf16_w(const std::string& str) {
 	return codepage_to_utf16_w(GetACP(), str);
+}
+
+inline std::string utf16_to_current_codepage(const std::wstring& str) {
+	return utf16_to_codepage(GetACP(), str);
 }
 #endif
 
