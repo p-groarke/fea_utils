@@ -315,6 +315,51 @@ inline std::wstring utf32_to_ucs2_w(const std::u32string& s) {
 }
 
 
+// Other Encodings.
+
+inline std::string iso_8859_1_to_utf8(const std::string& str) {
+	std::string ret;
+	ret.reserve(str.size());
+
+	for (uint8_t ch : str) {
+		if (ch < 128u) {
+			ret.push_back(ch);
+		} else {
+			ret.push_back(0b1100'0000 | ch >> 6);
+			ret.push_back(0b1000'0000 | (ch & 0b0011'1111));
+		}
+	}
+	return ret;
+}
+
+#if defined(_MSC_VER)
+#include <windows.h>
+
+// Provide a code page, for example CP_ACP
+inline std::wstring codepage_to_utf16_w(
+		UINT code_page, const std::string& str) {
+	if (str.size() > std::numeric_limits<int>::max()) {
+		throw std::runtime_error{
+			"codepage_to_utf16_w : Windows doesn't support converting strings "
+			"that big."
+		};
+	}
+
+	int size = MultiByteToWideChar(
+			code_page, 0, str.c_str(), int(str.size()), 0, 0);
+
+	std::wstring ret(size, '\0');
+	MultiByteToWideChar(code_page, 0, str.c_str(), int(str.size()), ret.data(),
+			int(ret.size()));
+	return ret;
+}
+
+inline std::wstring current_codepage_to_utf16_w(const std::string& str) {
+	return codepage_to_utf16_w(GetACP(), str);
+}
+#endif
+
+
 inline std::u32string read_with_bom(std::istream& src) {
 
 	enum class encoding {
