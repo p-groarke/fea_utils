@@ -1,4 +1,4 @@
-/**
+﻿/**
  * BSD 3-Clause License
  *
  * Copyright (c) 2019, Philippe Groarke
@@ -131,81 +131,199 @@ inline void replace_all(std::string& out, const std::string& search,
 	}
 }
 
-// The fucking standard doesn't provide codecvt equivalents. Use the old
+// The standard doesn't provide codecvt equivalents. Use the old
 // functionality until they do.
 #pragma warning(push)
 #pragma warning(disable : 4996)
 
-// @Brent
-// https://stackoverflow.com/questions/38688417/utf-conversion-functions-in-c11
+// From UTF8 (multi-byte)
 
-#if defined(_MSC_VER) // std::locale::id link error
-inline std::string to_utf8(const std::u16string& s) {
-	std::wstring_convert<std::codecvt_utf8<int16_t>, int16_t> convert;
-	auto p = reinterpret_cast<const int16_t*>(s.data());
-	return convert.to_bytes(p, p + s.size());
+// UTF-8 to UTF-16
+inline std::u16string utf8_to_utf16(const std::string& s) {
+	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+	return convert.from_bytes(s);
 }
 
-inline std::string to_utf8(const std::u32string& s) {
-	std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t> convert;
-	auto p = reinterpret_cast<const int32_t*>(s.data());
-	return convert.to_bytes(p, p + s.size());
+// UTF-8 to UTF-16, in wstring. Aka Windows "unicode".
+inline std::wstring utf8_to_utf16_w(const std::string& s) {
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convert;
+	return convert.from_bytes(s);
 }
 
-inline std::u16string to_utf16(const std::string& s) {
-	std::wstring_convert<std::codecvt_utf8<int16_t>, int16_t> convert;
-	auto asInt = convert.from_bytes(s);
-	return std::u16string(
-			reinterpret_cast<char16_t const*>(asInt.data()), asInt.length());
+// UTF-8 to UTF-16, encoded in 32bits. This is dumb, don't use this.
+inline std::u32string utf8_to_utf16_32bits(const std::string& s) {
+	std::wstring_convert<std::codecvt_utf8_utf16<char32_t>, char32_t> convert;
+	return convert.from_bytes(s);
 }
 
-inline std::u32string to_utf32(const std::string& s) {
-	std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t> convert;
-	auto asInt = convert.from_bytes(s);
-	return std::u32string(
-			reinterpret_cast<char32_t const*>(asInt.data()), asInt.length());
-}
-
-#else
-
-inline std::string to_utf8(const std::u16string& s) {
-	std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> conv;
-	return conv.to_bytes(s);
-}
-
-inline std::string to_utf8(const std::u32string& s) {
-	std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
-	return conv.to_bytes(s);
-}
-
-inline std::u16string to_utf16(const std::string& s) {
+// UTF-8 to UCS2, outdated format.
+inline std::u16string utf8_to_ucs2(const std::string& s) {
 	std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> convert;
 	return convert.from_bytes(s);
 }
 
-inline std::u32string to_utf32(const std::string& s) {
+// UTF-8 to UCS2, in wstring. Outdated format.
+inline std::wstring utf8_to_ucs2_w(const std::string& s) {
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convert;
+	return convert.from_bytes(s);
+}
+
+// UTF-8 to UTF-32
+inline std::u32string utf8_to_utf32(const std::string& s) {
 	std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
 	return conv.from_bytes(s);
 }
-#endif
 
-inline std::u16string to_utf16(const std::u32string& s) {
-	return to_utf16(to_utf8(s));
+
+// From UTF-16
+
+// UTF-16 to UTF-8
+inline std::string utf16_to_utf8(const std::u16string& s) {
+	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
+	return conv.to_bytes(s);
 }
 
-inline std::u32string to_utf32(const std::u16string& s) {
-	return to_utf32(to_utf8(s));
+// UTF-16 to UTF-8, using wstring.
+inline std::string utf16_to_utf8(const std::wstring& s) {
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> conv;
+	return conv.to_bytes(s);
 }
+
+// UTF-16 to UTF-8, using 32bit encoded UTF-16 (aka, dumb).
+inline std::string utf16_to_utf8(const std::u32string& s) {
+	std::wstring_convert<std::codecvt_utf8_utf16<char32_t>, char32_t> conv;
+	return conv.to_bytes(s);
+}
+
+// UTF-16 to UCS2, outdated format.
+inline std::u16string utf16_to_ucs2(const std::u16string& s) {
+	return utf8_to_ucs2(utf16_to_utf8(s));
+}
+
+// UTF-16 to UCS2, outdated format.
+inline std::u16string utf16_to_ucs2(const std::wstring& s) {
+	return utf8_to_ucs2(utf16_to_utf8(s));
+}
+
+// UTF-16 to UCS2, outdated format.
+inline std::wstring utf16_to_ucs2_w(const std::u16string& s) {
+	return utf8_to_ucs2_w(utf16_to_utf8(s));
+}
+
+// UTF-16 to UCS2, outdated format.
+inline std::wstring utf16_to_ucs2_w(const std::wstring& s) {
+	return utf8_to_ucs2_w(utf16_to_utf8(s));
+}
+
+// UTF-16 to UTF-32.
+inline std::u32string utf16_to_utf32(const std::u16string& s) {
+	return utf8_to_utf32(utf16_to_utf8(s));
+}
+
+// UTF-16 to UTF-32.
+inline std::u32string utf16_to_utf32(const std::wstring& s) {
+	return utf8_to_utf32(utf16_to_utf8(s));
+}
+
+
+// From UCS (outdated format)
+
+// UCS2 to UTF-8
+inline std::string ucs2_to_utf8(const std::u16string& s) {
+	std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> conv;
+	return conv.to_bytes(s);
+}
+
+// UCS2 to UTF-8, using wstring.
+inline std::string ucs2_to_utf8(const std::wstring& s) {
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> conv;
+	return conv.to_bytes(s);
+}
+
+// UCS2 to UTF-16.
+inline std::u16string ucs2_to_utf16(const std::u16string& s) {
+	return utf8_to_utf16(ucs2_to_utf8(s));
+}
+
+// UCS2 to UTF-16.
+inline std::u16string ucs2_to_utf16(const std::wstring& s) {
+	return utf8_to_utf16(ucs2_to_utf8(s));
+}
+
+// UCS2 to UTF-16.
+inline std::wstring ucs2_to_utf16_w(const std::u16string& s) {
+	return utf8_to_utf16_w(ucs2_to_utf8(s));
+}
+
+// UCS2 to UTF-16.
+inline std::wstring ucs2_to_utf16_w(const std::wstring& s) {
+	return utf8_to_utf16_w(ucs2_to_utf8(s));
+}
+
+// UCS2 to 32bit encoded UTF-16.
+inline std::u32string ucs2_to_utf16_32bit(const std::u16string& s) {
+	return utf8_to_utf16_32bits(ucs2_to_utf8(s));
+}
+
+// UCS2 to 32bit encoded UTF-16.
+inline std::u32string ucs2_to_utf16_32bit(const std::wstring& s) {
+	return utf8_to_utf16_32bits(ucs2_to_utf8(s));
+}
+
+// UCS2 to UTF-32.
+inline std::u32string ucs2_to_utf32(const std::u16string& s) {
+	return utf8_to_utf32(ucs2_to_utf8(s));
+}
+
+// UCS2 to UTF-32.
+inline std::u32string ucs2_to_utf32(const std::wstring& s) {
+	return utf8_to_utf32(ucs2_to_utf8(s));
+}
+
+
+// From UTF-32
+
+// UTF-32 to UTF-8
+inline std::string utf32_to_utf8(const std::u32string& s) {
+	std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+	return conv.to_bytes(s);
+}
+
+// UTF-32 to UTF-16
+inline std::u16string utf32_to_utf16(const std::u32string& s) {
+	return utf8_to_utf16(utf32_to_utf8(s));
+}
+
+// UTF-32 to UTF-16, using wstring
+inline std::wstring utf32_to_utf16_w(const std::u32string& s) {
+	return utf8_to_utf16_w(utf32_to_utf8(s));
+}
+
+// UTF-32 to 32bit encoded UTF-16
+inline std::u32string utf32_to_utf16_32bit(const std::u32string& s) {
+	return utf8_to_utf16_32bits(utf32_to_utf8(s));
+}
+
+// UTF-32 to UCS2, outdated format.
+inline std::u16string utf32_to_ucs2(const std::u32string& s) {
+	return utf8_to_ucs2(utf32_to_utf8(s));
+}
+
+// UTF-32 to UCS2, using wstring.
+inline std::wstring utf32_to_ucs2_w(const std::u32string& s) {
+	return utf8_to_ucs2_w(utf32_to_utf8(s));
+}
+
 
 inline std::u32string read_with_bom(std::istream& src) {
 
-	enum encoding {
-		encoding_utf32be = 0,
-		encoding_utf32le,
-		encoding_utf16be,
-		encoding_utf16le,
-		encoding_utf8,
-		encoding_ascii,
+	enum class encoding {
+		utf32be = 0,
+		utf32le,
+		utf16be,
+		utf16le,
+		utf8,
+		ascii,
 	};
 
 	std::vector<std::string> boms = {
@@ -219,7 +337,7 @@ inline std::u32string read_with_bom(std::istream& src) {
 	std::string buffer((std::istreambuf_iterator<char>(src)),
 			std::istreambuf_iterator<char>());
 
-	encoding enc = encoding_ascii;
+	encoding enc = encoding::ascii;
 
 	for (size_t i = 0; i < boms.size(); ++i) {
 		std::string testBom = boms[i];
@@ -231,7 +349,7 @@ inline std::u32string read_with_bom(std::istream& src) {
 	}
 
 	switch (enc) {
-	case encoding_utf32be: {
+	case encoding::utf32be: {
 		if (buffer.length() % 4 != 0) {
 			throw std::logic_error("size in bytes must be a multiple of 4");
 		}
@@ -244,7 +362,7 @@ inline std::u32string read_with_bom(std::istream& src) {
 		}
 		return temp;
 	}
-	case encoding_utf32le: {
+	case encoding::utf32le: {
 		if (buffer.length() % 4 != 0) {
 			throw std::logic_error("size in bytes must be a multiple of 4");
 		}
@@ -257,7 +375,7 @@ inline std::u32string read_with_bom(std::istream& src) {
 		}
 		return temp;
 	}
-	case encoding_utf16be: {
+	case encoding::utf16be: {
 		if (buffer.length() % 2 != 0) {
 			throw std::logic_error("size in bytes must be a multiple of 2");
 		}
@@ -267,9 +385,9 @@ inline std::u32string read_with_bom(std::istream& src) {
 			temp[i] = static_cast<char16_t>(
 					buffer[i * 2 + 1] << 0 | buffer[i * 2 + 0] << 8);
 		}
-		return to_utf32(temp);
+		return utf16_to_utf32(temp);
 	}
-	case encoding_utf16le: {
+	case encoding::utf16le: {
 		if (buffer.length() % 2 != 0) {
 			throw std::logic_error("size in bytes must be a multiple of 2");
 		}
@@ -279,10 +397,10 @@ inline std::u32string read_with_bom(std::istream& src) {
 			temp[i] = static_cast<char16_t>(
 					buffer[i * 2 + 0] << 0 | buffer[i * 2 + 1] << 8);
 		}
-		return to_utf32(temp);
+		return utf16_to_utf32(temp);
 	}
 	default:
-		return to_utf32(buffer);
+		return utf8_to_utf32(buffer);
 	}
 }
 #pragma warning(pop)
