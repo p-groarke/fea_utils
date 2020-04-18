@@ -382,7 +382,7 @@ inline std::string iso_8859_1_to_utf8(const std::string& str) {
 // Provide a code page, for example CP_ACP
 inline std::wstring codepage_to_utf16_w(
 		UINT code_page, const std::string& str) {
-	if (str.size() > std::numeric_limits<int>::max()) {
+	if (str.size() > unsigned(std::numeric_limits<int>::max())) {
 		throw std::runtime_error{
 			"codepage_to_utf16_w : Windows doesn't support converting strings "
 			"that big."
@@ -399,7 +399,7 @@ inline std::wstring codepage_to_utf16_w(
 }
 
 inline std::string utf16_to_codepage(UINT code_page, const std::wstring& str) {
-	if (str.size() > std::numeric_limits<int>::max()) {
+	if (str.size() > unsigned(std::numeric_limits<int>::max())) {
 		throw std::runtime_error{
 			"utf16_to_codepage : Windows doesn't support converting strings "
 			"that big."
