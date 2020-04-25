@@ -51,7 +51,7 @@ inline std::filesystem::path executable_dir(const char* argv0) {
 		arg.erase(0, 1);
 	}
 	c_path += std::filesystem::path{ arg };
-	return c_path;
+	return c_path.remove_filename();
 #endif
 }
 
