@@ -278,9 +278,11 @@ TEST(file, basics) {
 
 		{
 			const char* testagainst = "Line1\nLine2\n\nLine4";
+#if defined(_MSC_VER)
 			if (filepath.string().find("crlf") != std::string::npos) {
 				testagainst = "Line1\r\nLine2\r\n\r\nLine4";
 			}
+#endif
 
 			std::vector<uint8_t> bytes;
 			fea::open_binary_file(filepath, bytes);

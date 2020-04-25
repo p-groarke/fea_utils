@@ -80,6 +80,7 @@ if (${BUILD_TESTING})
 
 	add_executable(${TEST_NAME} ${TEST_SOURCES})
 	set_compile_options(${TEST_NAME} PRIVATE)
+	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${TEST_NAME})
 
 	find_package(GTest CONFIG REQUIRED)
 
