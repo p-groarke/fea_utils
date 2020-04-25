@@ -33,6 +33,7 @@
 
 #pragma once
 #include <algorithm>
+#include <cassert>
 #include <codecvt>
 #include <locale>
 #include <sstream>
@@ -44,29 +45,55 @@
 #endif
 
 namespace fea {
-template <class T>
-inline bool contains(const std::string& str, T search) {
-	return str.find(search) != std::string::npos;
+template <class CharT>
+using m_string = std::basic_string<CharT, std::char_traits<CharT>,
+		std::allocator<CharT>>;
+
+template <class CharT>
+[[nodiscard]] inline bool contains(
+		const m_string<CharT>& str, const m_string<CharT>& search) {
+	return str.find(search) != m_string<CharT>::npos;
+}
+template <class CharT>
+[[nodiscard]] inline bool contains(
+		const m_string<CharT>& str, const CharT* search) {
+	return str.find(search) != m_string<CharT>::npos;
 }
 
-inline bool starts_with(const std::string& str, const std::string& search) {
+template <class CharT>
+[[nodiscard]] inline bool starts_with(
+		const m_string<CharT>& str, const m_string<CharT>& search) {
+	return str.find(search) == 0;
+}
+template <class CharT>
+[[nodiscard]] inline bool starts_with(
+		const m_string<CharT>& str, const CharT* search) {
 	return str.find(search) == 0;
 }
 
-inline bool ends_with(const std::string& str, const std::string& search) {
-	return str.find(search) == str.size() - search.size();
+template <class CharT>
+[[nodiscard]] inline bool ends_with(
+		const m_string<CharT>& str, const m_string<CharT>& search) {
+	return str.find_last_of(search) == str.size() - search.size();
+}
+template <class CharT>
+[[nodiscard]] inline bool ends_with(
+		const m_string<CharT>& str, const CharT* search) {
+	return ends_with(str, m_string<CharT>{ search });
 }
 
-[[nodiscard]] inline std::string to_lower(const std::string& str) {
-	std::string ret = str;
+template <class CharT>
+[[nodiscard]] inline m_string<CharT> to_lower(const m_string<CharT>& str) {
+	auto ret = str;
 	std::transform(ret.begin(), ret.end(), ret.begin(),
-			[](char c) { return static_cast<char>(::tolower(c)); });
+			[](auto c) { return static_cast<CharT>(::tolower(c)); });
 	return ret;
 }
 
-inline void to_lower(std::string& out, bool /*inplace*/) {
+template <class CharT>
+inline void to_lower(m_string<CharT>& out, bool /*inplace*/) {
 	std::transform(out.begin(), out.end(), out.begin(),
-			[](char c) { return static_cast<char>(::tolower(c)); });
+			[](auto c) { return static_cast<CharT>(::tolower(c)); });
 }
 
 [[nodiscard]] inline std::vector<uint8_t> to_lower(
@@ -82,58 +109,73 @@ inline void to_lower(std::vector<uint8_t>& out, bool /*inplace*/) {
 			[](char c) { return static_cast<char>(::tolower(c)); });
 }
 
-[[nodiscard]] inline std::vector<std::string> split(
-		const std::string& str, char delimiter) {
-	std::vector<std::string> tokens;
-	std::string token;
-	std::istringstream tokenStream(str);
-	while (std::getline(tokenStream, token, delimiter)) {
+template <class CharT>
+[[nodiscard]] inline std::vector<m_string<CharT>> split(
+		const m_string<CharT>& str, CharT delimiter) {
+	std::vector<m_string<CharT>> tokens;
+	m_string<CharT> token;
+	std::basic_istringstream<CharT, std::char_traits<CharT>,
+			std::allocator<CharT>>
+			token_stream(str);
+
+	while (std::getline(token_stream, token, delimiter)) {
 		tokens.push_back(token);
 	}
 	return tokens;
 }
 
-[[nodiscard]] inline std::vector<std::string> split(
-		const std::string& str, const char* delimiters) {
-	std::vector<std::string> tokens;
+template <class CharT>
+[[nodiscard]] inline std::vector<m_string<CharT>> split(
+		const m_string<CharT>& str, const CharT* delimiters) {
+	std::vector<m_string<CharT>> tokens;
 	size_t prev = 0;
 	size_t pos;
 
-	while ((pos = str.find_first_of(delimiters, prev)) != std::string::npos) {
+	while ((pos = str.find_first_of(delimiters, prev))
+			!= m_string<CharT>::npos) {
 		if (pos > prev) {
 			tokens.push_back(str.substr(prev, pos - prev));
 		}
 		prev = pos + 1;
 	}
 	if (prev < str.length()) {
-		tokens.push_back(str.substr(prev, std::string::npos));
+		tokens.push_back(str.substr(prev, m_string<CharT>::npos));
 	}
 	return tokens;
 }
 
-[[nodiscard]] inline std::string replace_all(const std::string& str,
-		const std::string& search, const std::string& replace) {
-
-	std::string ret = str;
-	size_t pos = ret.find(search);
-	while (pos != std::string::npos) {
-		ret.replace(pos, search.size(), replace);
-		--pos;
-		pos = ret.find(search, pos + search.size());
-	}
-	return ret;
-}
-
-inline void replace_all(std::string& out, const std::string& search,
-		const std::string& replace, bool /*inplace*/) {
+template <class CharT>
+inline void replace_all(m_string<CharT>& out, const m_string<CharT>& search,
+		const m_string<CharT>& replace, bool /*inplace*/) {
 
 	size_t pos = out.find(search);
-	while (pos != std::string::npos) {
+	while (pos != m_string<CharT>::npos) {
 		out.replace(pos, search.size(), replace);
 		--pos;
 		pos = out.find(search, pos + search.size());
 	}
 }
+template <class CharT>
+inline void replace_all(m_string<CharT>& out, const CharT* search,
+		const CharT* replace, bool /*inplace*/) {
+	replace_all(
+			out, m_string<CharT>{ search }, m_string<CharT>{ replace }, true);
+}
+
+template <class CharT>
+[[nodiscard]] inline m_string<CharT> replace_all(const m_string<CharT>& str,
+		const m_string<CharT>& search, const m_string<CharT>& replace) {
+	m_string<CharT> ret = str;
+	replace_all(ret, search, replace, true);
+	return ret;
+}
+template <class CharT>
+[[nodiscard]] inline m_string<CharT> replace_all(
+		const m_string<CharT>& str, const CharT* search, const CharT* replace) {
+	return replace_all(
+			str, m_string<CharT>{ search }, m_string<CharT>{ replace });
+}
+
 
 // The standard doesn't provide codecvt equivalents. Use the old
 // functionality until they do.
@@ -319,6 +361,72 @@ inline std::wstring utf32_to_ucs2_w(const std::u32string& s) {
 }
 
 
+// Useful generalized conversions
+
+template <class CharT>
+std::string any_to_utf8(const m_string<CharT>& str) {
+	if constexpr (std::is_same_v<CharT, char>) {
+		return str;
+	} else if constexpr (std::is_same_v<CharT, wchar_t>) {
+		return utf16_to_utf8(str);
+	} else if constexpr (std::is_same_v<CharT, char16_t>) {
+		return utf16_to_utf8(str);
+	} else if constexpr (std::is_same_v<CharT, char32_t>) {
+		return utf32_to_utf8(str);
+	} else {
+		assert(false);
+		throw std::runtime_error{ "any_to_utf8 : unsupported string type" };
+	}
+}
+
+template <class CharT>
+m_string<CharT> utf8_to_any(const std::string& str) {
+	if constexpr (std::is_same_v<CharT, char>) {
+		return str;
+	} else if constexpr (std::is_same_v<CharT, wchar_t>) {
+		return utf8_to_utf16_w(str);
+	} else if constexpr (std::is_same_v<CharT, char16_t>) {
+		return utf8_to_utf16(str);
+	} else if constexpr (std::is_same_v<CharT, char32_t>) {
+		return utf8_to_utf32(str);
+	} else {
+		assert(false);
+		throw std::runtime_error{ "utf8_to_any : unsupported string type" };
+	}
+}
+
+template <class CharT>
+std::u32string any_to_utf32(const m_string<CharT>& str) {
+	if constexpr (std::is_same_v<CharT, char>) {
+		return utf8_to_utf32(str);
+	} else if constexpr (std::is_same_v<CharT, wchar_t>) {
+		return utf16_to_utf32(str);
+	} else if constexpr (std::is_same_v<CharT, char16_t>) {
+		return utf16_to_utf32(str);
+	} else if constexpr (std::is_same_v<CharT, char32_t>) {
+		return str;
+	} else {
+		assert(false);
+		throw std::runtime_error{ "any_to_utf32 : unsupported string type" };
+	}
+}
+
+template <class CharT>
+m_string<CharT> utf32_to_any(const std::u32string& str) {
+	if constexpr (std::is_same_v<CharT, char>) {
+		return utf32_to_utf8(str);
+	} else if constexpr (std::is_same_v<CharT, wchar_t>) {
+		return utf32_to_utf16_w(str);
+	} else if constexpr (std::is_same_v<CharT, char16_t>) {
+		return utf32_to_utf16(str);
+	} else if constexpr (std::is_same_v<CharT, char32_t>) {
+		return str;
+	} else {
+		assert(false);
+		throw std::runtime_error{ "utf32_to_any : unsupported string type" };
+	}
+}
+
 // Other Encodings.
 
 inline std::string iso_8859_1_to_utf8(const std::string& str) {
@@ -341,7 +449,7 @@ inline std::string iso_8859_1_to_utf8(const std::string& str) {
 // Provide a code page, for example CP_ACP
 inline std::wstring codepage_to_utf16_w(
 		UINT code_page, const std::string& str) {
-	if (str.size() > std::numeric_limits<int>::max()) {
+	if (str.size() > unsigned(std::numeric_limits<int>::max())) {
 		throw std::runtime_error{
 			"codepage_to_utf16_w : Windows doesn't support converting strings "
 			"that big."
@@ -358,7 +466,7 @@ inline std::wstring codepage_to_utf16_w(
 }
 
 inline std::string utf16_to_codepage(UINT code_page, const std::wstring& str) {
-	if (str.size() > std::numeric_limits<int>::max()) {
+	if (str.size() > unsigned(std::numeric_limits<int>::max())) {
 		throw std::runtime_error{
 			"utf16_to_codepage : Windows doesn't support converting strings "
 			"that big."
