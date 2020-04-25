@@ -10,7 +10,7 @@ inline constexpr bool debug_build = false;
 inline constexpr bool debug_build = true;
 #endif
 
-enum class platform_t : unsigned {
+enum class platform_t : unsigned int {
 	aix,
 	bsd,
 	hpux,
@@ -19,13 +19,13 @@ enum class platform_t : unsigned {
 	macos,
 	solaris,
 	windows,
-	count
+	count,
 };
 
-enum class platform_group_t : unsigned {
+enum class platform_group_t : unsigned int {
 	posix = 0b0001,
 	unix = 0b0010,
-	count = 0b0000
+	count = 0b0000,
 };
 FEA_ENABLE_BITMASK_OPERATORS(platform_group_t);
 
