@@ -1,4 +1,5 @@
-﻿#include <cstring>
+﻿#include <cstdio>
+#include <cstring>
 #include <fea_utils/fea_utils.hpp>
 #include <gtest/gtest.h>
 
@@ -76,6 +77,8 @@ TEST(file, basics) {
 	std::filesystem::path testfiles_dir = exe_path / "tests_data/";
 	for (const std::filesystem::path& filepath :
 			std::filesystem::directory_iterator(testfiles_dir)) {
+		printf("%s\n", filepath.string().c_str());
+
 		{
 			size_t counter = 0;
 			fea::read_text_file(filepath, [&](std::string&& line) {
