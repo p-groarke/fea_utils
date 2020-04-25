@@ -54,8 +54,13 @@ inline std::filesystem::path executable_dir(const char* argv0) {
 	printf("%s\n", arg.c_str());
 	c_path += std::filesystem::path{ arg };
 	printf("%s\n", c_path.string().c_str());
-	printf("%s\n", c_path.remove_filename().string().c_str());
-	return c_path.remove_filename();
+	if (c_path.string().find(".") != std::string::npos) {
+		printf("%s\n", c_path.remove_filename().string().c_str());
+		return c_path.remove_filename();
+	}
+
+	printf("%s\n", c_path.parent_path().string().c_str());
+	return c_path.parent_path();
 #endif
 }
 
