@@ -46,15 +46,15 @@ inline std::filesystem::path executable_dir(const char* argv0) {
 	return std::filesystem::absolute(argv0).remove_filename();
 #else
 	std::filesystem::path c_path = std::filesystem::current_path();
-	printf(c_path.string().c_str());
+	printf("%s\n", c_path.string().c_str());
 	std::string arg{ argv0 };
 	if (starts_with(arg, ".")) {
 		arg.erase(0, 1);
 	}
 	printf("%s\n", arg.c_str());
 	c_path += std::filesystem::path{ arg };
-	printf(c_path.string().c_str());
-	printf(c_path.remove_filename().string().c_str());
+	printf("%s\n", c_path.string().c_str());
+	printf("%s\n", c_path.remove_filename().string().c_str());
 	return c_path.remove_filename();
 #endif
 }
