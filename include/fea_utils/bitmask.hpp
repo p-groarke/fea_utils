@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <type_traits>
 
 #define FEA_ENABLE_BITMASK_OPERATORS(x) \
@@ -80,5 +80,5 @@ inline constexpr typename std::enable_if_t<has_bitmask_operators_v<T>,
 		std::underlying_type_t<T>>
 bitmask_cast(T e) {
 	return static_cast<std::underlying_type_t<T>>(e);
-};
+}
 } // namespace fea

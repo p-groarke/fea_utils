@@ -3,6 +3,7 @@
 
 namespace fea {
 #if defined(NDEBUG)
+#define FEA_RELEASE_BUILD 1
 inline constexpr bool debug_build = false;
 #else
 #define FEA_DEBUG_BUILD 1
@@ -18,13 +19,13 @@ enum class platform_t : unsigned {
 	macos,
 	solaris,
 	windows,
-	none
+	count
 };
 
 enum class platform_group_t : unsigned {
 	posix = 0b0001,
 	unix = 0b0010,
-	none = 0b0000
+	count = 0b0000
 };
 FEA_ENABLE_BITMASK_OPERATORS(platform_group_t);
 
@@ -90,7 +91,7 @@ inline constexpr platform_t platform = platform_t::solaris;
 inline constexpr platform_t platform = platform_t::windows;
 
 #else
-inline constexpr platform_t platform = platform_t::none;
+inline constexpr platform_t platform = platform_t::count;
 #endif
 
 #if !defined(_WIN32) \
@@ -116,7 +117,7 @@ inline constexpr platform_group_t platform_group = platform_group_t::unix;
 #endif
 
 #else
-inline constexpr platform_group_t platform_group = platform_group_t::none;
+inline constexpr platform_group_t platform_group = platform_group_t::count;
 #endif
 
 } // namespace fea
