@@ -1,7 +1,7 @@
 include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.conan.txt)
 
-cmake_minimum_required (VERSION 3.10)
-project(fea_utils VERSION 1.0.0 LANGUAGES CXX)
+cmake_minimum_required (VERSION 3.14)
+project(fea_utils VERSION 1.1.0 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -77,7 +77,7 @@ if (${BUILD_TESTING})
 	find_package(GTest CONFIG REQUIRED)
 	target_link_libraries(${TEST_NAME} PRIVATE ${PROJECT_NAME} GTest::GTest)
 
-	gtest_discover_tests(${TEST_NAME})
+	# gtest_discover_tests(${TEST_NAME})
 	add_dependencies(${TEST_NAME} ${PROJECT_NAME})
 
 	if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
