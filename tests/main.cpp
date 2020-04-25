@@ -77,7 +77,7 @@ TEST(file, basics) {
 	std::filesystem::path testfiles_dir = exe_path / "tests_data/";
 	for (const std::filesystem::path& filepath :
 			std::filesystem::directory_iterator(testfiles_dir)) {
-		printf("%s\n", filepath.string().c_str());
+		printf("testing : %s\n", filepath.string().c_str());
 
 		{
 			size_t counter = 0;
@@ -263,6 +263,9 @@ TEST(file, basics) {
 			EXPECT_FALSE(text.empty());
 
 			std::string tester = "Line1\nLine2\n\nLine4";
+			if (filepath.string().find("crlf") != std::string::npos) {
+				tester = "Line1\r\nLine2\r\n\r\nLine4";
+			}
 			EXPECT_EQ(text.size(), tester.size());
 			EXPECT_EQ(text, tester);
 		}
@@ -272,17 +275,18 @@ TEST(file, basics) {
 			EXPECT_FALSE(text.empty());
 
 			std::wstring tester = L"Line1\nLine2\n\nLine4";
+			if (filepath.string().find("crlf") != std::string::npos) {
+				tester = L"Line1\r\nLine2\r\n\r\nLine4";
+			}
 			EXPECT_EQ(text.size(), tester.size());
 			EXPECT_EQ(text, tester);
 		}
 
 		{
 			const char* testagainst = "Line1\nLine2\n\nLine4";
-#if defined(_MSC_VER)
 			if (filepath.string().find("crlf") != std::string::npos) {
 				testagainst = "Line1\r\nLine2\r\n\r\nLine4";
 			}
-#endif
 
 			std::vector<uint8_t> bytes;
 			fea::open_binary_file(filepath, bytes);

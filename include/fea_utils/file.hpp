@@ -224,7 +224,7 @@ inline bool wopen_text_file(
 
 template <class IFStream, class String>
 bool open_text_file_raw(const std::filesystem::path& fpath, String& out) {
-	IFStream ifs(fpath, std::ios::ate);
+	IFStream ifs(fpath, std::ios::ate | std::ios::binary);
 	if (!ifs.is_open()) {
 		fprintf(stderr, "Couldn't open file : %s\n", fpath.string().c_str());
 		return false;
