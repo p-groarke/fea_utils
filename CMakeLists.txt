@@ -82,14 +82,15 @@ if (${BUILD_TESTING})
 	set_compile_options(${TEST_NAME} PRIVATE)
 
 	find_package(GTest CONFIG REQUIRED)
-	target_link_libraries(${TEST_NAME} PRIVATE ${PROJECT_NAME} GTest::GTest)
+
+	if(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+		target_link_libraries(${TEST_NAME} PRIVATE ${PROJECT_NAME} GTest::GTest stdc++fs)
+	else()
+		target_link_libraries(${TEST_NAME} PRIVATE ${PROJECT_NAME} GTest::GTest)
+	endif()
 
 	gtest_discover_tests(${TEST_NAME})
 	add_dependencies(${TEST_NAME} ${PROJECT_NAME})
-
-	if(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-		target_link_libraries(${TEST_NAME} stdc++fs)
-	endif()
 
 	##
 	# Copy test data on build.
