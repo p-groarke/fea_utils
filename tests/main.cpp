@@ -1,4 +1,5 @@
-﻿#include <fea_utils/fea_utils.hpp>
+﻿#include <cstring>
+#include <fea_utils/fea_utils.hpp>
 #include <gtest/gtest.h>
 
 namespace {
@@ -136,7 +137,7 @@ TEST(file, basics) {
 
 			const char* testagainst = "Line1Line2Line4";
 			std::vector<uint8_t> tester{ testagainst,
-				testagainst + std::strlen(testagainst) };
+				testagainst + strlen(testagainst) };
 			EXPECT_EQ(text.size(), tester.size());
 			EXPECT_EQ(text, tester);
 		}
@@ -163,10 +164,10 @@ TEST(file, basics) {
 			const char* line1 = "Line1";
 			const char* line2 = "Line2";
 			const char* line4 = "Line4";
-			tester.push_back({ line1, line1 + std::strlen(line1) });
-			tester.push_back({ line2, line2 + std::strlen(line2) });
+			tester.push_back({ line1, line1 + strlen(line1) });
+			tester.push_back({ line2, line2 + strlen(line2) });
 			tester.push_back({});
-			tester.push_back({ line4, line4 + std::strlen(line4) });
+			tester.push_back({ line4, line4 + strlen(line4) });
 
 			ASSERT_EQ(lines.size(), tester.size());
 			for (size_t i = 0; i < lines.size(); ++i) {
@@ -283,7 +284,7 @@ TEST(file, basics) {
 			EXPECT_FALSE(bytes.empty());
 
 			std::vector<uint8_t> tester{ testagainst,
-				testagainst + std::strlen(testagainst) };
+				testagainst + strlen(testagainst) };
 			EXPECT_EQ(bytes.size(), tester.size());
 			EXPECT_EQ(bytes, tester);
 		}
