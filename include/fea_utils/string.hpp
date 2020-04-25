@@ -74,12 +74,12 @@ template <class CharT>
 template <class CharT>
 [[nodiscard]] inline bool ends_with(
 		const m_string<CharT>& str, const m_string<CharT>& search) {
-	return str.find(search) == str.size() - search.size();
+	return str.find_last_of(search) == str.size() - search.size();
 }
 template <class CharT>
 [[nodiscard]] inline bool ends_with(
 		const m_string<CharT>& str, const CharT* search) {
-	return str.find(search) == str.size() - search.size();
+	return ends_with(str, m_string<CharT>{ search });
 }
 
 template <class CharT>
@@ -364,7 +364,7 @@ inline std::wstring utf32_to_ucs2_w(const std::u32string& s) {
 // Useful generalized conversions
 
 template <class CharT>
-std::string any_to_ut8(const m_string<CharT>& str) {
+std::string any_to_utf8(const m_string<CharT>& str) {
 	if constexpr (std::is_same_v<CharT, char>) {
 		return str;
 	} else if constexpr (std::is_same_v<CharT, wchar_t>) {
