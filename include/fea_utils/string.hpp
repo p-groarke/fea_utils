@@ -33,6 +33,7 @@
 
 #pragma once
 #include <algorithm>
+#include <cassert>
 #include <codecvt>
 #include <locale>
 #include <sstream>
@@ -359,6 +360,37 @@ inline std::wstring utf32_to_ucs2_w(const std::u32string& s) {
 	return utf8_to_ucs2_w(utf32_to_utf8(s));
 }
 
+template <class CharT>
+std::u32string any_to_utf32(const m_string<CharT>& str) {
+	if constexpr (std::is_same_v<CharT, char>) {
+		return utf8_to_utf32(str);
+	} else if constexpr (std::is_same_v<CharT, wchar_t>) {
+		return utf16_to_utf32(str);
+	} else if constexpr (std::is_same_v<CharT, char16_t>) {
+		return utf16_to_utf32(str);
+	} else if constexpr (std::is_same_v<CharT, char32_t>) {
+		return std::u32string{ str };
+	} else {
+		assert(false);
+		throw std::runtime_error{ "any_to_utf32 : unsupported string type" };
+	}
+}
+
+template <class CharT>
+m_string<CharT> utf32_to_any(const std::u32string& str) {
+	if constexpr (std::is_same_v<CharT, char>) {
+		return utf32_to_utf8(str);
+	} else if constexpr (std::is_same_v<CharT, wchar_t>) {
+		return utf32_to_utf16_w(str);
+	} else if constexpr (std::is_same_v<CharT, char16_t>) {
+		return utf32_to_utf16(str);
+	} else if constexpr (std::is_same_v<CharT, char32_t>) {
+		return str;
+	} else {
+		assert(false);
+		throw std::runtime_error{ "utf32_to_any : unsupported string type" };
+	}
+}
 
 // Other Encodings.
 
