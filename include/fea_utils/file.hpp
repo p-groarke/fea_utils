@@ -32,9 +32,15 @@
  **/
 
 #pragma once
-#include "string.hpp"
+#include "fea_utils/platform.hpp"
+#include "fea_utils/string.hpp"
 
+#if defined(FEA_MACOS)
+#include <experimental/filesystem>
+#else
 #include <filesystem>
+#endif
+
 #include <fstream>
 #include <functional>
 #include <string>
