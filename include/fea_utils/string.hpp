@@ -179,8 +179,10 @@ template <class CharT>
 
 // The standard doesn't provide codecvt equivalents. Use the old
 // functionality until they do.
+#if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable : 4996)
+#endif
 
 // From UTF8 (multi-byte)
 
@@ -449,13 +451,6 @@ inline std::string iso_8859_1_to_utf8(const std::string& str) {
 // Provide a code page, for example CP_ACP
 inline std::wstring codepage_to_utf16_w(
 		UINT code_page, const std::string& str) {
-	if (str.size() > unsigned(std::numeric_limits<int>::max())) {
-		throw std::runtime_error{
-			"codepage_to_utf16_w : Windows doesn't support converting strings "
-			"that big."
-		};
-	}
-
 	int size = MultiByteToWideChar(
 			code_page, 0, str.c_str(), int(str.size()), 0, 0);
 
@@ -466,13 +461,6 @@ inline std::wstring codepage_to_utf16_w(
 }
 
 inline std::string utf16_to_codepage(UINT code_page, const std::wstring& str) {
-	if (str.size() > unsigned(std::numeric_limits<int>::max())) {
-		throw std::runtime_error{
-			"utf16_to_codepage : Windows doesn't support converting strings "
-			"that big."
-		};
-	}
-
 	int size = WideCharToMultiByte(
 			code_page, 0, str.data(), int(str.size()), 0, 0, nullptr, nullptr);
 
@@ -580,5 +568,7 @@ inline std::u32string read_with_bom(std::istream& src) {
 		return utf8_to_utf32(buffer);
 	}
 }
+#if defined(_MSC_VER)
 #pragma warning(pop)
+#endif
 } // namespace fea
