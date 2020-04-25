@@ -7,6 +7,7 @@ namespace {
 std::filesystem::path exe_path;
 
 TEST(str, basics) {
+	printf("str_basics");
 	std::string str = "a string weeee, bang, ding, ow";
 	EXPECT_TRUE(fea::contains(str, "ding"));
 	EXPECT_FALSE(fea::contains(str, "dong"));
@@ -296,7 +297,12 @@ TEST(file, basics) {
 } // namespace
 
 int main(int argc, char** argv) {
+	for (int i = 0; i < argc; ++i) {
+		printf("argv : %s\n", argv[i]);
+	}
 	exe_path = fea::executable_dir(argv[0]);
+
+	printf("%s\n", exe_path.string().c_str());
 
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
