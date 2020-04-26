@@ -1,5 +1,6 @@
 # fea_utils
 [![Build status](https://ci.appveyor.com/api/projects/status/08nrt1tbdau7o3jq/branch/master?svg=true)](https://ci.appveyor.com/project/p-groarke/fea-utils/branch/master)
+[![Build Status](https://travis-ci.org/p-groarke/fea_utils.svg?branch=master)](https://travis-ci.org/p-groarke/fea_utils)
 
 Useful utility functions to do basic things in c++.
 
