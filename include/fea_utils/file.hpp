@@ -270,4 +270,99 @@ inline bool open_binary_file(
 	ifs.read(reinterpret_cast<char*>(out.data()), out.size());
 	return true;
 }
+
+template <class IFStream>
+inline std::u32string open_text_file_with_bom(IFStream& src) {
+
+	using CharT = typename IFStream::char_type;
+	using m_string = std::basic_string<CharT, std::char_traits<CharT>,
+			std::allocator<CharT>>;
+
+	enum class encoding {
+		utf32be = 0,
+		utf32le,
+		utf16be,
+		utf16le,
+		utf8,
+		ascii,
+	};
+
+	std::vector<m_string> boms = {
+		m_string("\x00\x00\xFE\xFF", 4),
+		m_string("\xFF\xFE\x00\x00", 4),
+		m_string("\xFE\xFF", 2),
+		m_string("\xFF\xFE", 2),
+		m_string("\xEF\xBB\xBF", 3),
+	};
+
+
+	m_string buffer((std::istreambuf_iterator<CharT>(src)),
+			std::istreambuf_iterator<CharT>());
+
+	encoding enc = encoding::ascii;
+
+	for (size_t i = 0; i < boms.size(); ++i) {
+		m_string testBom = boms[i];
+		if (buffer.compare(0, testBom.size(), testBom) == 0) {
+			enc = encoding(i);
+			buffer = buffer.substr(testBom.size());
+			break;
+		}
+	}
+
+	switch (enc) {
+	case encoding::utf32be: {
+		if (buffer.size() % 4 != 0) {
+			throw std::logic_error("size in bytes must be a multiple of 4");
+		}
+		size_t count = buffer.size() / 4;
+		std::u32string temp = std::u32string(count, 0);
+		for (size_t i = 0; i < count; ++i) {
+			temp[i] = static_cast<char32_t>(buffer[i * 4 + 3] << 0
+					| buffer[i * 4 + 2] << 8 | buffer[i * 4 + 1] << 16
+					| buffer[i * 4 + 0] << 24);
+		}
+		return temp;
+	}
+	case encoding::utf32le: {
+		if (buffer.size() % 4 != 0) {
+			throw std::logic_error("size in bytes must be a multiple of 4");
+		}
+		size_t count = buffer.size() / 4;
+		std::u32string temp = std::u32string(count, 0);
+		for (size_t i = 0; i < count; ++i) {
+			temp[i] = static_cast<char32_t>(buffer[i * 4 + 0] << 0
+					| buffer[i * 4 + 1] << 8 | buffer[i * 4 + 2] << 16
+					| buffer[i * 4 + 3] << 24);
+		}
+		return temp;
+	}
+	case encoding::utf16be: {
+		if (buffer.size() % 2 != 0) {
+			throw std::logic_error("size in bytes must be a multiple of 2");
+		}
+		size_t count = buffer.size() / 2;
+		std::u16string temp = std::u16string(count, 0);
+		for (size_t i = 0; i < count; ++i) {
+			temp[i] = static_cast<char16_t>(
+					buffer[i * 2 + 1] << 0 | buffer[i * 2 + 0] << 8);
+		}
+		return utf16_to_utf32(temp);
+	}
+	case encoding::utf16le: {
+		if (buffer.size() % 2 != 0) {
+			throw std::logic_error("size in bytes must be a multiple of 2");
+		}
+		size_t count = buffer.size() / 2;
+		std::u16string temp = std::u16string(count, 0);
+		for (size_t i = 0; i < count; ++i) {
+			temp[i] = static_cast<char16_t>(
+					buffer[i * 2 + 0] << 0 | buffer[i * 2 + 1] << 8);
+		}
+		return utf16_to_utf32(temp);
+	}
+	default:
+		return any_to_utf32(buffer);
+	}
+}
 } // namespace fea
