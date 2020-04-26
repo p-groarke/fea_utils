@@ -64,7 +64,7 @@ inline constexpr platform_t platform = platform_t::hpux;
 #elif defined(__linux__)
 #undef FEA_LINUX
 #define FEA_LINUX 1
-inline constexpr platform_t platform = platform_t::linux;
+inline constexpr platform_t platform = platform_t::linuxx;
 
 #elif defined(__APPLE__) && defined(__MACH__)
 }
@@ -109,11 +109,11 @@ namespace fea {
 #undef FEA_UNIX
 #define FEA_UNIX 1
 inline constexpr platform_group_t platform_group
-		= platform_group_t::posix | platform_group_t::unix;
+		= platform_group_t::posix | platform_group_t::unixx;
 #else
 #undef FEA_UNIX
 #define FEA_UNIX 1
-inline constexpr platform_group_t platform_group = platform_group_t::unix;
+inline constexpr platform_group_t platform_group = platform_group_t::unixx;
 #endif
 
 #else
