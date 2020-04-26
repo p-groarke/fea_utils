@@ -46,6 +46,45 @@
 #include <windows.h>
 #endif
 
+
+// Makes a string literal of type CharType
+#define FEA_MAKE_LITERAL_T(CharType, str) \
+	[]() { \
+		if constexpr (std::is_same_v<CharType, char>) { \
+			return str; \
+		} else if constexpr (std::is_same_v<CharType, wchar_t>) { \
+			return L##str; \
+		} else if constexpr (std::is_same_v<CharType, char16_t>) { \
+			return u##str; \
+		} else if constexpr (std::is_same_v<CharType, char32_t>) { \
+			return U##str; \
+		} \
+	}()
+
+// These are shortcuts if you use CharT as an alias or template.
+#define FEA_MAKE_LITERAL(str) FEA_MAKE_LITERAL_T(CharT, str)
+#define FEA_ML(str) FEA_MAKE_LITERAL_T(CharT, str)
+
+
+// Makes a character literal of type CharType
+#define FEA_MAKE_CHAR_LITERAL_T(CharType, str) \
+	[]() { \
+		if constexpr (std::is_same_v<CharType, char>) { \
+			return str; \
+		} else if constexpr (std::is_same_v<CharType, wchar_t>) { \
+			return L##str; \
+		} else if constexpr (std::is_same_v<CharType, char16_t>) { \
+			return u##str; \
+		} else if constexpr (std::is_same_v<CharType, char32_t>) { \
+			return U##str; \
+		} \
+	}()
+
+// These are shortcuts if you use CharT as an alias or template.
+#define FEA_MAKE_CHAR_LITERAL(str) FEA_MAKE_CHAR_LITERAL_T(CharT, str)
+#define FEA_CH(ch) FEA_MAKE_CHAR_LITERAL_T(CharT, ch)
+
+
 namespace fea {
 template <class CharT>
 using m_string = std::basic_string<CharT, std::char_traits<CharT>,
@@ -474,95 +513,6 @@ inline std::string utf16_to_current_codepage(const std::wstring& str) {
 }
 #endif
 
-
-inline std::u32string read_with_bom(std::istream& src) {
-
-	enum class encoding {
-		utf32be = 0,
-		utf32le,
-		utf16be,
-		utf16le,
-		utf8,
-		ascii,
-	};
-
-	std::vector<std::string> boms = {
-		std::string("\x00\x00\xFE\xFF", 4),
-		std::string("\xFF\xFE\x00\x00", 4),
-		std::string("\xFE\xFF", 2),
-		std::string("\xFF\xFE", 2),
-		std::string("\xEF\xBB\xBF", 3),
-	};
-
-	std::string buffer((std::istreambuf_iterator<char>(src)),
-			std::istreambuf_iterator<char>());
-
-	encoding enc = encoding::ascii;
-
-	for (size_t i = 0; i < boms.size(); ++i) {
-		std::string testBom = boms[i];
-		if (buffer.compare(0, testBom.length(), testBom) == 0) {
-			enc = encoding(i);
-			buffer = buffer.substr(testBom.length());
-			break;
-		}
-	}
-
-	switch (enc) {
-	case encoding::utf32be: {
-		if (buffer.length() % 4 != 0) {
-			throw std::logic_error("size in bytes must be a multiple of 4");
-		}
-		size_t count = buffer.length() / 4;
-		std::u32string temp = std::u32string(count, 0);
-		for (size_t i = 0; i < count; ++i) {
-			temp[i] = static_cast<char32_t>(buffer[i * 4 + 3] << 0
-					| buffer[i * 4 + 2] << 8 | buffer[i * 4 + 1] << 16
-					| buffer[i * 4 + 0] << 24);
-		}
-		return temp;
-	}
-	case encoding::utf32le: {
-		if (buffer.length() % 4 != 0) {
-			throw std::logic_error("size in bytes must be a multiple of 4");
-		}
-		size_t count = buffer.length() / 4;
-		std::u32string temp = std::u32string(count, 0);
-		for (size_t i = 0; i < count; ++i) {
-			temp[i] = static_cast<char32_t>(buffer[i * 4 + 0] << 0
-					| buffer[i * 4 + 1] << 8 | buffer[i * 4 + 2] << 16
-					| buffer[i * 4 + 3] << 24);
-		}
-		return temp;
-	}
-	case encoding::utf16be: {
-		if (buffer.length() % 2 != 0) {
-			throw std::logic_error("size in bytes must be a multiple of 2");
-		}
-		size_t count = buffer.length() / 2;
-		std::u16string temp = std::u16string(count, 0);
-		for (size_t i = 0; i < count; ++i) {
-			temp[i] = static_cast<char16_t>(
-					buffer[i * 2 + 1] << 0 | buffer[i * 2 + 0] << 8);
-		}
-		return utf16_to_utf32(temp);
-	}
-	case encoding::utf16le: {
-		if (buffer.length() % 2 != 0) {
-			throw std::logic_error("size in bytes must be a multiple of 2");
-		}
-		size_t count = buffer.length() / 2;
-		std::u16string temp = std::u16string(count, 0);
-		for (size_t i = 0; i < count; ++i) {
-			temp[i] = static_cast<char16_t>(
-					buffer[i * 2 + 0] << 0 | buffer[i * 2 + 1] << 8);
-		}
-		return utf16_to_utf32(temp);
-	}
-	default:
-		return utf8_to_utf32(buffer);
-	}
-}
 #if defined(FEA_WINDOWS)
 #pragma warning(pop)
 #endif

@@ -270,4 +270,219 @@ inline bool open_binary_file(
 	ifs.read(reinterpret_cast<char*>(out.data()), out.size());
 	return true;
 }
+
+
+enum class text_encoding {
+	utf32be,
+	utf32le,
+	utf16be,
+	utf16le,
+	utf8,
+	count,
+};
+
+inline bool reconstruct_text_file(const std::string& input_str,
+		text_encoding encoding, std::u32string& output_str) {
+
+	switch (encoding) {
+	case text_encoding::utf32be: {
+		if (input_str.size() % 4 != 0) {
+			return false;
+		}
+
+		size_t count = input_str.size() / 4;
+		std::u32string temp(count, 0);
+
+		for (size_t i = 0; i < count; ++i) {
+			temp[i] = static_cast<char32_t>(input_str[i * 4 + 3] << 0
+					| input_str[i * 4 + 2] << 8 | input_str[i * 4 + 1] << 16
+					| input_str[i * 4 + 0] << 24);
+		}
+
+		// Do this "dummy" conversion to test conversion was ok.
+		try {
+			std::string utf8 = utf32_to_utf8(temp);
+			output_str = utf8_to_utf32(utf8);
+		} catch (const std::range_error&) {
+			output_str.clear();
+			return false;
+		}
+	} break;
+	case text_encoding::utf32le: {
+		if (input_str.size() % 4 != 0) {
+			return false;
+		}
+
+		size_t count = input_str.size() / 4;
+		std::u32string temp(count, 0);
+		for (size_t i = 0; i < count; ++i) {
+			temp[i] = static_cast<char32_t>(input_str[i * 4 + 0] << 0
+					| input_str[i * 4 + 1] << 8 | input_str[i * 4 + 2] << 16
+					| input_str[i * 4 + 3] << 24);
+		}
+
+		try {
+			std::string utf8 = utf32_to_utf8(temp);
+			output_str = utf8_to_utf32(utf8);
+		} catch (const std::range_error&) {
+			output_str.clear();
+			return false;
+		}
+	} break;
+	case text_encoding::utf16be: {
+		if (input_str.size() % 2 != 0) {
+			return false;
+		}
+
+		size_t count = input_str.size() / 2;
+		std::u16string temp(count, 0);
+		for (size_t i = 0; i < count; ++i) {
+			temp[i] = static_cast<char16_t>(
+					input_str[i * 2 + 1] << 0 | input_str[i * 2 + 0] << 8);
+		}
+
+		try {
+			output_str = utf16_to_utf32(temp);
+		} catch (const std::range_error&) {
+			output_str.clear();
+			return false;
+		}
+	} break;
+	case text_encoding::utf16le: {
+		if (input_str.size() % 2 != 0) {
+			return false;
+		}
+
+		size_t count = input_str.size() / 2;
+		std::u16string temp(count, 0);
+		for (size_t i = 0; i < count; ++i) {
+			temp[i] = static_cast<char16_t>(
+					input_str[i * 2 + 0] << 0 | input_str[i * 2 + 1] << 8);
+		}
+
+		try {
+			output_str = utf16_to_utf32(temp);
+		} catch (const std::range_error&) {
+			output_str.clear();
+			return false;
+		}
+	} break;
+	case text_encoding::utf8: {
+		try {
+			output_str = utf8_to_utf32(input_str);
+		} catch (const std::range_error&) {
+			output_str.clear();
+			return false;
+		}
+	} break;
+	default: {
+		return false;
+	} break;
+	}
+
+	return true;
+}
+
+// Based on :
+// https://www.codeproject.com/Tips/672470/Simple-Character-Encoding-Detection
+inline text_encoding detect_encoding(const std::string& str) {
+	// 1. If a string doesn't contain nulls, its UTF-8
+	if (str.find('\0') == std::string::npos) {
+		return text_encoding::utf8;
+	}
+
+	// else
+	// 2. If a string doesn't contain double nulls, it's UTF-16
+	std::string double_null("\0\0", 2);
+	if (str.find(double_null) == std::string::npos) {
+		// 3. If the nulls are on odd numbered indices, it's UTF-16LE
+		for (size_t i = 0; i < str.size(); ++i) {
+			if (str[i] == '\0' && (i % 2) != 0) {
+				return text_encoding::utf16le;
+			}
+		}
+
+		// else
+		// 4. The string defaults to UTF-16BE
+		return text_encoding::utf16be;
+	}
+
+	// Files are not stored as utf32, so don't support that detection. At least
+	// for now.
+	return text_encoding::count;
+
+	// else
+	// 5. If the index modulo 4 is 0 and the character is greater than
+	// 0x7F, the string is UTF-32LE. This is because the range of
+	// UTF-32 only goes up to 0x7FFFFFFF, meaning approximately 22%
+	// of the characters that can be represented will validate that
+	// the string is not big endian; including a BOM.
+
+	// else
+	// 6. The string defaults to UTF-32BE
+}
+
+inline std::u32string open_text_file_with_bom(std::ifstream& src) {
+	// File BOMs
+	const std::vector<std::string> boms = {
+		std::string("\x00\x00\xFE\xFF", 4), // utf32be
+		std::string("\xFF\xFE\x00\x00", 4), // utf32le
+		std::string("\xFE\xFF", 2), // utf16be
+		std::string("\xFF\xFE", 2), // utf16le
+		std::string("\xEF\xBB\xBF", 3), // utf8
+	};
+
+	// Read file as chars.
+	std::string buffer((std::istreambuf_iterator<char>(src)),
+			std::istreambuf_iterator<char>());
+
+	std::u32string ret;
+
+	// Test the boms. If one is found, try to convert the file to utf32.
+	for (size_t i = 0; i < boms.size(); ++i) {
+		const std::string& bom = boms[i];
+		if (buffer.compare(0, bom.size(), bom) != 0) {
+			continue;
+		}
+
+		text_encoding enc = text_encoding(i);
+		buffer = buffer.substr(bom.size());
+		if (reconstruct_text_file(buffer, enc, ret)) {
+			// Found bom, conversion was good, all gucci.
+			return ret;
+		}
+		break;
+	}
+	// Oh no, BOM no found, try to figure it out.
+
+	// First, try to detect utf8, utf16le and utf16be.
+	{
+		text_encoding enc = detect_encoding(buffer);
+
+		if (enc != text_encoding::count) {
+			if (reconstruct_text_file(buffer, enc, ret)) {
+				// Yay.
+				return ret;
+			}
+		}
+	}
+
+	// Brute force it
+	for (size_t i = 0; i < size_t(text_encoding::count); ++i) {
+		text_encoding enc = text_encoding(i);
+		if (reconstruct_text_file(buffer, enc, ret)) {
+			// There is a good chance the encoding is incorrect in a lexical
+			// sense here, but programatically it is ok.
+			return ret;
+		}
+	}
+
+	// Evewything failed.
+	throw std::runtime_error{
+		"open_text_file_with_bom : Unsupported file encoding. Please use "
+		"utf8, utf16 or utf32."
+	};
+
+	// return ret;
+}
 } // namespace fea
