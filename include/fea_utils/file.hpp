@@ -303,7 +303,7 @@ inline bool reconstruct_text_file(const std::string& input_str,
 		try {
 			std::string utf8 = utf32_to_utf8(temp);
 			output_str = utf8_to_utf32(utf8);
-		} catch (std::range_error) {
+		} catch (const std::range_error&) {
 			output_str.clear();
 			return false;
 		}
@@ -324,7 +324,7 @@ inline bool reconstruct_text_file(const std::string& input_str,
 		try {
 			std::string utf8 = utf32_to_utf8(temp);
 			output_str = utf8_to_utf32(utf8);
-		} catch (std::range_error) {
+		} catch (const std::range_error&) {
 			output_str.clear();
 			return false;
 		}
@@ -343,7 +343,7 @@ inline bool reconstruct_text_file(const std::string& input_str,
 
 		try {
 			output_str = utf16_to_utf32(temp);
-		} catch (std::range_error) {
+		} catch (const std::range_error&) {
 			output_str.clear();
 			return false;
 		}
@@ -362,7 +362,7 @@ inline bool reconstruct_text_file(const std::string& input_str,
 
 		try {
 			output_str = utf16_to_utf32(temp);
-		} catch (std::range_error) {
+		} catch (const std::range_error&) {
 			output_str.clear();
 			return false;
 		}
