@@ -370,7 +370,7 @@ inline bool reconstruct_text_file(const std::string& input_str,
 	case text_encoding::utf8: {
 		try {
 			output_str = utf8_to_utf32(input_str);
-		} catch (std::range_error) {
+		} catch (const std::range_error&) {
 			output_str.clear();
 			return false;
 		}
