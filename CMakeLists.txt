@@ -71,7 +71,7 @@ install(EXPORT ${PROJECT_NAME}_targets
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
 # Tests
-option(BUILD_TESTING "Build and run tests." On)
+option(BUILD_TESTING "Build and run tests." Off)
 if (${BUILD_TESTING})
 	enable_testing()
 	
