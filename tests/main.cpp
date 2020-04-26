@@ -1,4 +1,6 @@
-﻿#include <fea_utils/fea_utils.hpp>
+﻿#include <cstdio>
+#include <cstring>
+#include <fea_utils/fea_utils.hpp>
 #include <gtest/gtest.h>
 
 namespace {
@@ -75,6 +77,8 @@ TEST(file, basics) {
 	std::filesystem::path testfiles_dir = exe_path / "tests_data/";
 	for (const std::filesystem::path& filepath :
 			std::filesystem::directory_iterator(testfiles_dir)) {
+		printf("testing : %s\n", filepath.string().c_str());
+
 		{
 			size_t counter = 0;
 			fea::read_text_file(filepath, [&](std::string&& line) {
@@ -136,7 +140,7 @@ TEST(file, basics) {
 
 			const char* testagainst = "Line1Line2Line4";
 			std::vector<uint8_t> tester{ testagainst,
-				testagainst + std::strlen(testagainst) };
+				testagainst + strlen(testagainst) };
 			EXPECT_EQ(text.size(), tester.size());
 			EXPECT_EQ(text, tester);
 		}
@@ -163,10 +167,10 @@ TEST(file, basics) {
 			const char* line1 = "Line1";
 			const char* line2 = "Line2";
 			const char* line4 = "Line4";
-			tester.push_back({ line1, line1 + std::strlen(line1) });
-			tester.push_back({ line2, line2 + std::strlen(line2) });
+			tester.push_back({ line1, line1 + strlen(line1) });
+			tester.push_back({ line2, line2 + strlen(line2) });
 			tester.push_back({});
-			tester.push_back({ line4, line4 + std::strlen(line4) });
+			tester.push_back({ line4, line4 + strlen(line4) });
 
 			ASSERT_EQ(lines.size(), tester.size());
 			for (size_t i = 0; i < lines.size(); ++i) {
@@ -259,6 +263,9 @@ TEST(file, basics) {
 			EXPECT_FALSE(text.empty());
 
 			std::string tester = "Line1\nLine2\n\nLine4";
+			if (filepath.string().find("crlf") != std::string::npos) {
+				tester = "Line1\r\nLine2\r\n\r\nLine4";
+			}
 			EXPECT_EQ(text.size(), tester.size());
 			EXPECT_EQ(text, tester);
 		}
@@ -268,6 +275,9 @@ TEST(file, basics) {
 			EXPECT_FALSE(text.empty());
 
 			std::wstring tester = L"Line1\nLine2\n\nLine4";
+			if (filepath.string().find("crlf") != std::string::npos) {
+				tester = L"Line1\r\nLine2\r\n\r\nLine4";
+			}
 			EXPECT_EQ(text.size(), tester.size());
 			EXPECT_EQ(text, tester);
 		}
@@ -283,7 +293,7 @@ TEST(file, basics) {
 			EXPECT_FALSE(bytes.empty());
 
 			std::vector<uint8_t> tester{ testagainst,
-				testagainst + std::strlen(testagainst) };
+				testagainst + strlen(testagainst) };
 			EXPECT_EQ(bytes.size(), tester.size());
 			EXPECT_EQ(bytes, tester);
 		}

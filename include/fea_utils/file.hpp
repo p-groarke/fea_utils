@@ -1,7 +1,7 @@
 ﻿/**
  * BSD 3-Clause License
  *
- * Copyright (c) 2019, Philippe Groarke
+ * Copyright (c) 2020, Philippe Groarke
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,11 @@
  **/
 
 #pragma once
+#include "fea_utils/platform.hpp"
+#include "fea_utils/string.hpp"
+
 #include <filesystem>
+
 #include <fstream>
 #include <functional>
 #include <string>
@@ -40,7 +44,21 @@
 namespace fea {
 // Returns the executable's directory. You must provide argv[0].
 inline std::filesystem::path executable_dir(const char* argv0) {
+#if defined(FEA_WINDOWS)
 	return std::filesystem::absolute(argv0).remove_filename();
+#else
+	std::filesystem::path c_path = std::filesystem::current_path();
+	std::string arg{ argv0 };
+	if (starts_with(arg, ".")) {
+		arg.erase(0, 1);
+	}
+	c_path += std::filesystem::path{ arg };
+	if (c_path.string().find(".") != std::string::npos) {
+		return c_path.remove_filename();
+	}
+
+	return c_path.parent_path();
+#endif
 }
 
 
@@ -208,7 +226,7 @@ inline bool wopen_text_file(
 
 template <class IFStream, class String>
 bool open_text_file_raw(const std::filesystem::path& fpath, String& out) {
-	IFStream ifs(fpath, std::ios::ate);
+	IFStream ifs(fpath, std::ios::ate | std::ios::binary);
 	if (!ifs.is_open()) {
 		fprintf(stderr, "Couldn't open file : %s\n", fpath.string().c_str());
 		return false;
@@ -219,7 +237,7 @@ bool open_text_file_raw(const std::filesystem::path& fpath, String& out) {
 
 	using c_t = typename String::value_type;
 	size_t pos = out.find(c_t{}); // The real end is always screwed up.
-	
+
 	if (pos != String::npos) {
 		out.resize(pos);
 	}
