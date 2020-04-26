@@ -113,21 +113,6 @@ inline void to_lower(std::vector<uint8_t>& out, bool /*inplace*/) {
 
 template <class CharT>
 [[nodiscard]] inline std::vector<m_string<CharT>> split(
-		const m_string<CharT>& str, CharT delimiter) {
-	std::vector<m_string<CharT>> tokens;
-	m_string<CharT> token;
-	std::basic_istringstream<CharT, std::char_traits<CharT>,
-			std::allocator<CharT>>
-			token_stream(str);
-
-	while (std::getline(token_stream, token, delimiter)) {
-		tokens.push_back(token);
-	}
-	return tokens;
-}
-
-template <class CharT>
-[[nodiscard]] inline std::vector<m_string<CharT>> split(
 		const m_string<CharT>& str, const CharT* delimiters) {
 	std::vector<m_string<CharT>> tokens;
 	size_t prev = 0;
@@ -145,6 +130,14 @@ template <class CharT>
 	}
 	return tokens;
 }
+
+template <class CharT>
+[[nodiscard]] inline std::vector<m_string<CharT>> split(
+		const m_string<CharT>& str, CharT delimiter) {
+	m_string<CharT> delim{ delimiter };
+	return split(str, delim.c_str());
+}
+
 
 template <class CharT>
 inline void replace_all(m_string<CharT>& out, const m_string<CharT>& search,
