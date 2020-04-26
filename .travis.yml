@@ -23,15 +23,17 @@ install:
 
 matrix:
   include:
-    - os: osx
-      osx_image: xcode11.3
-      env:
-        - MATRIX_EVAL="CC=clang && CXX=clang++ && CONFIG=Debug"
+    # Even though travis doc states xcode11.3 is macos 10.15 (with std::filesystem support),
+    # it is not. Because travis.
+    # - os: osx
+    #   osx_image: xcode11.3
+    #   env:
+    #     - MATRIX_EVAL="CC=clang && CXX=clang++ && CONFIG=Debug"
 
-    - os: osx
-      osx_image: xcode11.3
-      env:
-        - MATRIX_EVAL="CC=clang && CXX=clang++ && CONFIG=Release"
+    # - os: osx
+    #   osx_image: xcode11.3
+    #   env:
+    #     - MATRIX_EVAL="CC=clang && CXX=clang++ && CONFIG=Release"
 
     - os: linux
       dist: bionic

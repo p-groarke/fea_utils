@@ -1,7 +1,7 @@
-/**
+﻿/**
  * BSD 3-Clause License
  *
- * Copyright (c) 2019, Philippe Groarke
+ * Copyright (c) 2020, Philippe Groarke
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@
 #include <type_traits>
 
 namespace fea {
-
 
 template <class T>
 [[nodiscard]] constexpr std::conditional_t<

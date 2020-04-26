@@ -1,7 +1,7 @@
 ﻿/**
  * BSD 3-Clause License
  *
- * Copyright (c) 2019, Philippe Groarke
+ * Copyright (c) 2020, Philippe Groarke
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,8 @@
  **/
 
 #pragma once
+#include "fea_utils/platform.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <codecvt>
@@ -40,7 +42,7 @@
 #include <string>
 #include <vector>
 
-#if defined(_MSC_VER)
+#if defined(FEA_WINDOWS)
 #include <windows.h>
 #endif
 
@@ -179,7 +181,7 @@ template <class CharT>
 
 // The standard doesn't provide codecvt equivalents. Use the old
 // functionality until they do.
-#if defined(_MSC_VER)
+#if defined(FEA_WINDOWS)
 #pragma warning(push)
 #pragma warning(disable : 4996)
 #endif
@@ -447,7 +449,7 @@ inline std::string iso_8859_1_to_utf8(const std::string& str) {
 }
 
 
-#if defined(_MSC_VER)
+#if defined(FEA_WINDOWS)
 // Provide a code page, for example CP_ACP
 inline std::wstring codepage_to_utf16_w(
 		UINT code_page, const std::string& str) {
@@ -568,7 +570,7 @@ inline std::u32string read_with_bom(std::istream& src) {
 		return utf8_to_utf32(buffer);
 	}
 }
-#if defined(_MSC_VER)
+#if defined(FEA_WINDOWS)
 #pragma warning(pop)
 #endif
 } // namespace fea

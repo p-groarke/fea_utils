@@ -1,7 +1,7 @@
 ﻿/**
  * BSD 3-Clause License
  *
- * Copyright (c) 2019, Philippe Groarke
+ * Copyright (c) 2020, Philippe Groarke
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,7 @@
 #include "fea_utils/platform.hpp"
 #include "fea_utils/string.hpp"
 
-#if defined(FEA_MACOS)
-#include <experimental/filesystem>
-#else
 #include <filesystem>
-#endif
 
 #include <fstream>
 #include <functional>
@@ -48,7 +44,7 @@
 namespace fea {
 // Returns the executable's directory. You must provide argv[0].
 inline std::filesystem::path executable_dir(const char* argv0) {
-#if defined(_MSC_VER)
+#if defined(FEA_WINDOWS)
 	return std::filesystem::absolute(argv0).remove_filename();
 #else
 	std::filesystem::path c_path = std::filesystem::current_path();
